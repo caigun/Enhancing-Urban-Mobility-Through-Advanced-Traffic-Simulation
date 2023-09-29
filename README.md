@@ -9,10 +9,10 @@ This project aims to develop a comprehensive traffic simulation system for an ar
 
 **Team Members** (shown in alphabetical order):
 
+Albert Chi (albertchi3141@berkeley.edu)
+
 Harry Wang (caijunwang@berkeley.edu)
 
 Linda Lim (lindalim478@berkeley.edu)
-
-Albert Chi (albertchi3141@berkeley.edu)
 
 Yuteng Zhang (yutengzhang@berkeley.edu)
