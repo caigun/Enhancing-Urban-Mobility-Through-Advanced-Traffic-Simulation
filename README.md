@@ -9,6 +9,6 @@ Harry Wang (caijunwang@berkeley.edu)
 
 Linda Lim (lindalim478@berkeley.edu)
 
-Yu-heng Chi (albertchi3141@berkeley.edu)
+Albert Chi (albertchi3141@berkeley.edu)
 
 Yuteng Zhang (yutengzhang@berkeley.edu)
