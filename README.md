@@ -1,7 +1,7 @@
 # **Enhancing Urban Mobility Through Advanced Traffic Simulation**
 IEOR 174 group project
 
-2023@UC Berkeley
+2023 @ UC Berkeley
 
 **Project Overview**:
 
