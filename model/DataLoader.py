@@ -16,9 +16,10 @@ class lightNode():
 class RoadMap():
     """
     This is the main part defining the problem.
-    
-    When initializing the system, there is a parameter that is avalible to choose: \\\\
-    lenTol: the tolerance level of the lenth between two ligths on the same street/road.\\
+
+    ** When initializing the system, there is a parameter that is avalible to choose:
+
+    lenTol: the tolerance level of the lenth between two ligths on the same street/road\\
     when this level is set to reletively high (or even inf, as default), the system may
     create strange roads (from a very far crossroad to another), since there may be no
     other traffic lights. This situation can be solved if all the crossroads (including
@@ -26,24 +27,30 @@ class RoadMap():
     green). However in this simplier model, we just do not consider the non-traffic lights
     crossroads.
 
-    Useful parameters that you can retrived from this class:\\ 
-    df = all traffic lights data\\ 
-    lenTol = road lenth tolerance level\\ 
-    rdSegment = road Segments (note that this is a two-way segments dictionary, refer to
-    _reconstructRoads for detailed usage)\\ 
-    nodes = all nodes in this system
-    
-    Useful functions:\\ 
-    drawLights(highlight=None) : draw all the lights in the map, if hightLight (a specific road
-    name, string) is given, the map will highlight all the lights on this street/road.\\ 
-    findNode(cnn) : return a node with certain cnn\\ 
-    drawRoads(highlight=None) : draw all the roads (segments) that were identified by the system.
-    if highlight is given, this function will only draw the highlight street/road. Note: this function
-    is still improving. Please report if there is any bug. :)\\ 
-    getSuccessors(node) : return all the successors that can go from this light. Stored in array
+    ** Useful parameters that you can retrived from this class:
 
-    Not yet implemented functions:\\ 
-    drawRoadsWithStress(stress) : draw all the roads with a given traffic jam stress dictionary.
+    * df = all traffic lights data
+    * lenTol = road lenth tolerance level
+    * rdSegment = road Segments (note that this is a two-way segments dictionary, refer to
+    _reconstructRoads for detailed usage)
+    * nodes = all nodes in this system
+    
+    ** Useful functions:
+    
+    * drawLights(highlight=None) : draw all the lights in the map, if hightLight (a specific road
+    name, string) is given, the map will highlight all the lights on this street/road.
+
+    * findNode(cnn) : return a node with certain cnn
+
+    * drawRoads(highlight=None) : draw all the roads (segments) that were identified by the system.
+    if highlight is given, this function will only draw the highlight street/road. Note: this function
+    is still improving. Please report if there is any bug. :)
+
+    * getSuccessors(node) : return all the successors that can go from this light. Stored in array
+
+    ** Not yet implemented functions:
+
+    * drawRoadsWithStress(stress) : draw all the roads with a given traffic jam stress dictionary.
     """
     def __init__(self,df,lenTol=float('inf')):
         self.df=df.loc[:,("STREET1","STREET2","STREET3","shape","CNN")]
