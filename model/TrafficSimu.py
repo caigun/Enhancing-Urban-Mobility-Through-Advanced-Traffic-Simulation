@@ -12,14 +12,15 @@ def rdSegmentDis(roads):
     for nodes, road in roads.rdSegment.items():
         point1 = (nodes[0].longitude, nodes[0].latitude)
         point2 = (nodes[1].longitude, nodes[1].latitude)
-        dis[nodes] = roads.l2Distance(point1,point2)*100000
+        dis[nodes] = roads.l2Distance(point1,point2)*111194
     return dis
 
-def initialize(rdSegDis):
+def initialize(rdSegDis, divisor=20):
     """
     Return the intial state of traffic, including the number of cars on each Segment of roads.
     """
-    pass
+    initial = rdSegDis.divideAll(divisor)
+    return initial
 
 def update(state, updateTime):
     """
@@ -44,4 +45,5 @@ if __name__ == '__main__':
         time -= updateTime
         state = update(state, updateTime)
 
-    print(rdSegDis)
+    # print(rdSegDis) 
+    print(state)
