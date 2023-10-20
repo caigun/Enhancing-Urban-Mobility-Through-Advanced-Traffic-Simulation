@@ -12,6 +12,7 @@ class lightNode():
         self.streets=streets
         self.successors=successors
         self.coo=(latitude,longitude)
+        self.cnn=cnn
 
 class RoadMap():
     """
@@ -96,12 +97,12 @@ class RoadMap():
         according to the street/road information stored in self.df, and link the closest node of the same street/road
         to be the next node.
 
-        Every nodes have these information:\\
-        node.streets = array containing all streets/roads the node in\\
-        node.successors = array containing all the neiboring nodes that are accessible from the current node\\
-        node.latitude = latitude of this node, i.e., df["dty"]\\
-        node.longitude = longitude of this node, i.e., df["dtx"]\\
-        node.coo = coordinate of this node
+        Every nodes have these information:
+        * node.streets = array containing all streets/roads the node in
+        * node.successors = array containing all the neiboring nodes that are accessible from the current node
+        * node.latitude = latitude of this node, i.e., df["dty"]
+        * node.longitude = longitude of this node, i.e., df["dtx"]
+        * node.coo = coordinate of this node
 
         The successor collecting process is done in self._reconstructRoads
         """
@@ -146,6 +147,7 @@ class RoadMap():
         """
         Acoording to the nodes constructed with successors, link all the nodes with their successor(which is a street/road
         segment).
+
         Store the road data in terms of dictionary: key=set(node1, node2), value=road
         """
         self.rdSegment={}
