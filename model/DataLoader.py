@@ -6,7 +6,7 @@ import numpy as np
 import math
 
 class lightNode():
-    def __init__(self, latitude, longitude, cnn, streets=[], successors=[]):
+    def __init__(self, latitude, longitude, cnn, streets=[], successors=set()):
         self.latitude=latitude
         self.longitude=longitude
         self.streets=streets
@@ -109,7 +109,7 @@ class RoadMap():
         self.nodes=[]
         self.roads=util.Counter()
         for index, row in self.df.iterrows():
-            node=lightNode(row["dty"],row["dtx"],row["CNN"])
+            node=lightNode(row["dty"],row["dtx"],row["CNN"],successors=set())
             for i in [row["STREET1"],row["STREET2"],row["STREET3"]]:
                 if i==i:
                     node.streets.append(i)
@@ -157,10 +157,10 @@ class RoadMap():
             elif len(nodes)==2:
                 if self.l2Distance(nodes[0].coo,nodes[1].coo)>self.lenTol:
                     continue
-                nodes[0].successors.append(nodes[1])
+                nodes[0].successors.add(nodes[1])
                 self.rdSegment[(nodes[1],nodes[0])]=road
                 self.rdSegment[(nodes[0],nodes[1])]=road
-                nodes[1].successors.append(nodes[0])
+                nodes[1].successors.add(nodes[0])
                 continue
             for node in nodes:
                 kPoint=self._findClosestKPointandDistance(nodes, node)
@@ -168,17 +168,17 @@ class RoadMap():
                 successor2=kPoint[1][0]
                 if self._isReverseDirection(node, successor1, successor2):
                     if not kPoint[0][1]>self.lenTol:
-                        node.successors+=[successor1]
+                        node.successors.add(successor1)
                         self.rdSegment[(node,successor1)]=road
                         self.rdSegment[(successor1,node)]=road
                     if not kPoint[1][1]>self.lenTol:
-                        node.successors+=[successor2]
+                        node.successors.add(successor2)
                         self.rdSegment[(node,successor2)]=road
                         self.rdSegment[(successor2,node)]=road
                 else:
                     if kPoint[0][1]>self.lenTol:
                         continue
-                    node.successors+=[successor1]
+                    node.successors.add(successor1)
                     self.rdSegment[(node,successor1)]=road
                     self.rdSegment[(successor1,node)]=road
                     for i in kPoint[2:]:
@@ -186,7 +186,7 @@ class RoadMap():
                         if self._isReverseDirection(node, successor1, i[0]):
                             self.rdSegment[(node,i[0])]=road
                             self.rdSegment[(i[0],node)]=road
-                            node.successors+=[i[0]]
+                            node.successors.add(i[0])
                             break
 
     def getSuccessors(self, node):
