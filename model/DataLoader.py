@@ -196,12 +196,18 @@ class RoadMap():
         if highlight!=None:
             for nodes, road in self.rdSegment.items():
                 if road==highlight:
-                    plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes])
+                    plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color="RED")
+                else:
+                    plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=(110/256,130/256,230/256))
             return
-        for nodes, dis in self.rdSegment.items():
-            plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes])
+        for nodes, rd in self.rdSegment.items():
+            plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=(110/256,130/256,230/256))
 
-    def drawRoadsWithStress(self, stress):
+    def drawRoadsWithStress(self, stress=util.Counter()):
+        colorGradient=[(51/256,255/256,51/256), (153/256,255/256,51/256), (255/256,255/256,51/256),\
+                       (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256)]
+        for nodes, rd in self.rdSegment.items():
+            plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=colorGradient[stress[nodes]])
         pass
 
 if __name__ == '__main__':
@@ -213,7 +219,8 @@ if __name__ == '__main__':
     f = plt.figure()
     f.set_figwidth(10)
     f.set_figheight(6)
-    roads.drawLights("VALENCIA")
     # roads.drawRoads("VALENCIA")
-    roads.drawRoads()
+    roads.drawRoadsWithStress()
+    roads.drawLights("VALENCIA")
+    # roads.drawRoads()
     plt.show()
