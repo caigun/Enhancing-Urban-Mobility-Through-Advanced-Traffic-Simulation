@@ -12,12 +12,7 @@ nodes[any traffic light 1 with successor 2 3 4 5]:
     Queues: {queue of 2->1: [Times for cars to be at intersection], queue of 3->1: [Times for cars to be in intersection],...}
     Transition function:{2:P(1->2), 3:P(1->3),..., disappear:P(disappear)}
 }
-
 """
-
-
-
-
 def rdSegmentDis(roads):
     """
     This function returns distances between every two adjacent traffic lights.
@@ -33,9 +28,10 @@ def rdSegmentDis(roads):
 def initialize(nodes):
     """
     Return the intial state of traffic, including the number of cars on each Segment of roads.
-
     """
-    pass
+    for node in nodes:
+        successor = roads.getSuccessors(node)
+
 
 def update(nodes, updateTime, time):
     """
@@ -94,8 +90,10 @@ if __name__ == '__main__':
     roads=RoadMap(df, 0.03)
     rdSegDis = rdSegmentDis(roads)
 
-    state = initialize(rdSegDis)
+    nodes = util.Counter()
+
+    nodes = initialize(rdSegDis)
     while time:
         time -= updateTime
-        state = update(state, updateTime, time)
+        update(nodes, updateTime, time)
 
