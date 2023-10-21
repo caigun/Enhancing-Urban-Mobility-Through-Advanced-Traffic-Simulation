@@ -67,12 +67,12 @@ def initialize(nodes, roads, rdSegDis, divisor=50, timePolicy=[20,]*6, transPoli
     assignPolicy(nodes, roads, timePolicy)
     createTrans(nodes, roads, transPolicy)
 
-def updatePolicy(nodes, results, alpha):
-    """
-    Update policy for traffic lights by previous result: averge waiting times
-    alpha: learning rate
-    """
-    pass
+# def updatePolicy(nodes, results, alpha):
+#     """
+#     Update policy for traffic lights by previous result: averge waiting times
+#     alpha: learning rate
+#     """
+#     pass
 
 def addCars(nodes):
     """
@@ -80,7 +80,7 @@ def addCars(nodes):
     """
     pass
     
-def updateQueues(nodes, updateTime, time):
+def updateQueues(nodes, updateTime, time, distPassingTime):
     """
     update the queues: pop cars that are out, push new cars in
     """
@@ -89,16 +89,17 @@ def updateQueues(nodes, updateTime, time):
 
 def updateTimeLists(nodes, updateTime, time):
     """
-    update the time lists.
+    update the time lists for recording time of cars to pass the intersection
     """
     pass
 
-def update(nodes, updateTime, time):
+def update(nodes, updateTime, time, distPassingTime="constant"):
     """
     Update the traffic every updateTime seconds.
     """
-    updateQueues(nodes, updateTime, time)
+    updateQueues(nodes, updateTime, time, distPassingTime)
     updateTimeLists(nodes, updateTime, time)
+    addCars(nodes)
     pass
 
 
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     time = 60*60                        # total time
     updateTime = 1                      # update every updateTime seconds
     avgCarPassingTime = 5               # average time for a car to pass the intersection
-    # distPassingTime = "exp"             # distribution of car passing time
+    distPassingTime = "constant"             # distribution of car passing time, "exp", "constant", "xxx"
 
     df=pd.read_csv("Traffic_Signals.csv")
     roads=RoadMap(df, 0.03)
