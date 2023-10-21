@@ -4,6 +4,20 @@ import numpy as np
 import util
 
 
+"""
+Structure of nodes: nodes <- util.Counter(traffic lights)
+nodes[any traffic light 1 with successor 2 3 4 5]: 
+{
+    policy: {2->1: time_interval[0, 20], 3->1: time_interval[20, 40], 4->1: time_interval[40, 60], 5->1: time_interval[60, 80]}
+    Queues: {queue of 2->1: [Times for cars to be at intersection], queue of 3->1: [Times for cars to be in intersection],...}
+    Transition function:{2:P(1->2), 3:P(1->3),..., disappear:P(disappear)}
+}
+
+"""
+
+
+
+
 def rdSegmentDis(roads):
     """
     This function returns distances between every two adjacent traffic lights.
