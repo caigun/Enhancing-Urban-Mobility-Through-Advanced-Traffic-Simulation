@@ -125,17 +125,20 @@ def updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed):
             if car > time:
                 break
             record = nodes[node]["Records"][(succ,node)]
-            nodes[node]["Records"][(succ,node)] = (record[0]*record[1]+(time-car))/(record[1]+1)
+            nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
             u = np.random.uniform()
             index0 = int(u*len(successors)+1)
             if index0 == len(successors):
                 continue
             success = list(successors)[index0]
-            print(roads.getSuccessors(success),success)
-            print(roads.getSuccessors(node),node)
+            # print(roads.getSuccessors(success),success)
+            # print(roads.getSuccessors(node),node)
             # print(node.cnn,success.cnn)
             # print(time)
-            nodes[success]["Queues"][(node,success)].append(time+updateTime+rdSegDis[(node, success)]/speed)
+            try:
+                nodes[success]["Queues"][(node,success)].append(time+updateTime+rdSegDis[(node, success)]/speed)
+            except:
+                pass
 
 def update(nodes, roads, updateTime, time, rdSegDis, distPassingTime, divisor=100, speed=10):
     """
@@ -163,4 +166,10 @@ if __name__ == '__main__':
     while t<time:
         t += updateTime
         update(nodes, roads, updateTime, t, rdSegDis, distPassingTime, divisor=100, speed=10)
+        print("time: {} complete".format(t))
+    
+    for node in roads.nodes:
+        successors = roads.getSuccessors(node)
+        for succ in successors:
+            print(nodes[node]["Records"][(succ,node)])
 
