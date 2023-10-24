@@ -117,8 +117,8 @@ def updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed):
             if iterTime < sum(nodes[node]["Policy"]["timeIntervals"][:i+1]):
                 succ = list(successors)[i]
                 break
-        # numCarPass = np.random.geometric(p=0.5,size=1)
-        numCarPass = int(updateTime/2)
+        numCarPass = np.random.poisson(lam=updateTime/2,size=1)[0]
+        # numCarPass = int(updateTime/2)
         carPass = nodes[node]["Queues"][(succ,node)][:numCarPass]
         nodes[node]["Queues"][(succ,node)] = nodes[node]["Queues"][(succ,node)][numCarPass:]
         for car in carPass:
