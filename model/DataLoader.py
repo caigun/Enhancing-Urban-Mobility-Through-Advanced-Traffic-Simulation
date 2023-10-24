@@ -167,16 +167,19 @@ class RoadMap():
                 if self._isReverseDirection(node, successor1, successor2):
                     if not kPoint[0][1]>self.lenTol:
                         node.successors.add(successor1)
+                        successor1.successors.add(node)
                         self.rdSegment[(node,successor1)]=road
                         self.rdSegment[(successor1,node)]=road
                     if not kPoint[1][1]>self.lenTol:
                         node.successors.add(successor2)
+                        successor2.successors.add(node)
                         self.rdSegment[(node,successor2)]=road
                         self.rdSegment[(successor2,node)]=road
                 else:
                     if kPoint[0][1]>self.lenTol:
                         continue
                     node.successors.add(successor1)
+                    successor1.successors.add(node)
                     self.rdSegment[(node,successor1)]=road
                     self.rdSegment[(successor1,node)]=road
                     for i in kPoint[2:]:
@@ -185,6 +188,7 @@ class RoadMap():
                             self.rdSegment[(node,i[0])]=road
                             self.rdSegment[(i[0],node)]=road
                             node.successors.add(i[0])
+                            i[0].successors.add(node)
                             break
 
     def getSuccessors(self, node):
