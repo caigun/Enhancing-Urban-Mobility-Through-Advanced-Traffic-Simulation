@@ -49,8 +49,6 @@ class RoadMap():
 
     * getSuccessors(node) : return all the successors that can go from this light. Stored in array
 
-    ** Not yet implemented functions:
-
     * drawRoadsWithStress(stress) : draw all the roads with a given traffic jam stress dictionary.
     """
     def __init__(self,df,lenTol=float('inf')):
