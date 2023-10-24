@@ -2,6 +2,8 @@ from DataLoader import RoadMap
 import pandas as pd
 import numpy as np
 import util
+import matplotlib.pyplot as plt
+import random
 
 
 """
@@ -117,8 +119,9 @@ def updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed):
             if iterTime < sum(nodes[node]["Policy"]["timeIntervals"][:i+1]):
                 succ = list(successors)[i]
                 break
-        numCarPass = np.random.poisson(lam=updateTime/2,size=1)[0]
-        # numCarPass = int(updateTime/2)
+        # numCarPass = np.random.poisson(lam=updateTime/2,size=1)[0]
+        # print(numCarPass)
+        numCarPass = int(updateTime/2)
         carPass = nodes[node]["Queues"][(succ,node)][:numCarPass]
         nodes[node]["Queues"][(succ,node)] = nodes[node]["Queues"][(succ,node)][numCarPass:]
         for car in carPass:
@@ -135,10 +138,11 @@ def updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed):
             # print(roads.getSuccessors(node),node)
             # print(node.cnn,success.cnn)
             # print(time)
-            try:
-                nodes[success]["Queues"][(node,success)].append(time+updateTime+rdSegDis[(node, success)]/speed)
-            except:
-                pass
+            # try:
+            #     nodes[success]["Queues"][(node,success)].append(time+updateTime+rdSegDis[(node, success)]/speed)
+            # except:
+            #     pass
+            nodes[success]["Queues"][(node,success)].append(time+updateTime+rdSegDis[(node, success)]/speed)
 
 def update(nodes, roads, updateTime, time, rdSegDis, distPassingTime, divisor=100, speed=10):
     """
@@ -146,6 +150,19 @@ def update(nodes, roads, updateTime, time, rdSegDis, distPassingTime, divisor=10
     """
     updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed)
     addCars(nodes, roads, divisor, time, rdSegDis, distPassingTime)
+
+def trafficLevel(hot):
+    if hot < 30:
+        return 0
+    if hot < 60:
+        return 1
+    if hot < 200:
+        return 2
+    if hot < 600:
+        return 3
+    if hot < 1200:
+        return 4
+    return 5
 
 if __name__ == '__main__':
 
@@ -168,8 +185,11 @@ if __name__ == '__main__':
         update(nodes, roads, updateTime, t, rdSegDis, distPassingTime, divisor=100, speed=10)
         print("time: {} complete".format(t))
     
+    draw = util.Counter()
     for node in roads.nodes:
         successors = roads.getSuccessors(node)
         for succ in successors:
-            print(nodes[node]["Records"][(succ,node)])
-
+            hot = nodes[node]["Records"][(succ,node)][0]
+            draw[(succ,node)] = trafficLevel(hot)
+    roads.drawRoadsWithStress(stress=draw)
+    plt.show()
