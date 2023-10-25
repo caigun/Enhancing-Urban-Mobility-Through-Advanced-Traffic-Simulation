@@ -45,7 +45,8 @@ def initialCars(nodes, roads, rdSegDis, divisor, distPassingTime):
         nodes[node]["Queues"] = dict()
         successors = roads.getSuccessors(node)
         for succ in successors:
-            nodes[node]["Queues"][(succ,node)] = [0 for _ in range(int(rdSegDis[(succ,node)]/divisor))]
+            # nodes[node]["Queues"][(succ,node)] = [0 for _ in range(int(rdSegDis[(succ,node)]/divisor))]
+            nodes[node]["Queues"][(succ,node)] = [0 for _ in range(20)]
 
 def assignPolicy(nodes, roads, timePolicy):
     """
@@ -58,7 +59,7 @@ def assignPolicy(nodes, roads, timePolicy):
         # for i in range(len(successors)):
         #     timeIntervals.append((successors[i],timePolicy[i]))
         # nodes[node]["Policy"]["timeIntervals"] = timeIntervals
-        nodes[node]["Policy"]["timeIntervals"] = timePolicy
+        nodes[node]["Policy"]["timeIntervals"] = timePolicy.copy()
         nodes[node]["Policy"]["timeForOneIteration"] = sum(timePolicy[:len(successors)])
 
 def createTrans(nodes, roads, transPolicy):
@@ -87,23 +88,50 @@ def initialize(nodes, roads, rdSegDis, divisor, distPassingTime, timePolicy, tra
     createTrans(nodes, roads, transPolicy)
     startRecord(nodes, roads)
 
-# def updatePolicy(nodes, results, alpha):
-#     """
-#     Update policy for traffic lights by previous result: averge waiting times
-#     alpha: learning rate
-#     """
-#     pass
+def updatePolicy(nodes, roads, alpha):
+    """
+    Update policy for traffic lights by previous result: averge waiting times
+    alpha: learning rate
+    """
+    for node in roads.nodes:
+        successors = roads.getSuccessors(node)
+        if len(successors) <= 1:
+            continue
+        maxSucc = None
+        minSucc = None
+        max, min = 0, 1000000
+        successors = list(successors)
+        for i in range(len(successors)):
+            if nodes[node]["Records"][(successors[i],node)][0] >= max:
+                max = nodes[node]["Records"][(successors[i],node)][0]
+                maxSucc = i
+            if nodes[node]["Records"][(successors[i],node)][0] <= min:
+                min = nodes[node]["Records"][(successors[i],node)][0]
+                minSucc = i
+        if nodes[node]["Policy"]["timeIntervals"][maxSucc] > 480:
+            nodes[node]["Policy"]["timeIntervals"][maxSucc] = nodes[node]["Policy"]["timeIntervals"][maxSucc] + alpha*2
+            nodes[node]["Policy"]["timeForOneIteration"] += alpha*2
+        elif nodes[node]["Policy"]["timeIntervals"][maxSucc] > 240:
+            nodes[node]["Policy"]["timeIntervals"][maxSucc] = nodes[node]["Policy"]["timeIntervals"][maxSucc] + alpha
+            nodes[node]["Policy"]["timeForOneIteration"] += alpha
+        if nodes[node]["Policy"]["timeIntervals"][minSucc] < 60:
+            nodes[node]["Policy"]["timeIntervals"][minSucc] = nodes[node]["Policy"]["timeIntervals"][minSucc] - alpha*2
+            nodes[node]["Policy"]["timeForOneIteration"] -= alpha*2
+        elif nodes[node]["Policy"]["timeIntervals"][minSucc] < 120:
+            nodes[node]["Policy"]["timeIntervals"][minSucc] = nodes[node]["Policy"]["timeIntervals"][minSucc] - alpha
+            nodes[node]["Policy"]["timeForOneIteration"] -= alpha
 
 def addCars(nodes, roads, divisor, time, rdSegDis, distPassingTime):
     """
     Add cars to the traffic.
     """
-    if time%20 != 0:
+    if time%60 != 0:
         return
     for node in roads.nodes:
         successors = roads.getSuccessors(node)
         for succ in successors:
-            for _ in range(int(rdSegDis[(succ,node)]/divisor)):
+            # for _ in range(int(rdSegDis[(succ,node)]/divisor)):
+            for _ in range(2):
                 nodes[node]["Queues"][(succ,node)].append(time)
     
 def updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed):
@@ -120,7 +148,6 @@ def updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed):
                 succ = list(successors)[i]
                 break
         # numCarPass = np.random.poisson(lam=updateTime/2,size=1)[0]
-        # print(numCarPass)
         numCarPass = int(updateTime/2)
         carPass = nodes[node]["Queues"][(succ,node)][:numCarPass]
         nodes[node]["Queues"][(succ,node)] = nodes[node]["Queues"][(succ,node)][numCarPass:]
@@ -134,14 +161,6 @@ def updateQueues(nodes, updateTime, time, distPassingTime, rdSegDis, speed):
             if index0 == len(successors):
                 continue
             success = list(successors)[index0]
-            # print(roads.getSuccessors(success),success)
-            # print(roads.getSuccessors(node),node)
-            # print(node.cnn,success.cnn)
-            # print(time)
-            # try:
-            #     nodes[success]["Queues"][(node,success)].append(time+updateTime+rdSegDis[(node, success)]/speed)
-            # except:
-            #     pass
             nodes[success]["Queues"][(node,success)].append(time+updateTime+rdSegDis[(node, success)]/speed)
 
 def update(nodes, roads, updateTime, time, rdSegDis, distPassingTime, divisor=100, speed=10):
@@ -156,17 +175,17 @@ def trafficLevel(hot):
         return 0
     if hot < 60:
         return 1
-    if hot < 200:
+    if hot < 120:
         return 2
-    if hot < 600:
+    if hot < 240:
         return 3
-    if hot < 1200:
+    if hot < 480:
         return 4
     return 5
 
 if __name__ == '__main__':
 
-    time = 60*50                        # total time in second
+    time = 60*60*4                      # total time in second
     updateTime = 2                      # update every updateTime seconds
     avgCarPassingTime = 5               # average time for a car to pass the intersection
     distPassingTime = ("constant",5)      
@@ -176,14 +195,16 @@ if __name__ == '__main__':
     roads=RoadMap(df, 0.03)
     rdSegDis = rdSegmentDis(roads)
 
-    nodes = util.Counter()
-    initialize(nodes, roads, rdSegDis, divisor=50, distPassingTime=distPassingTime, timePolicy=[20,]*6, transPolicy = None)
-
-    t = 0
-    while t<time:
-        t += updateTime
-        update(nodes, roads, updateTime, t, rdSegDis, distPassingTime, divisor=100, speed=10)
-        print("time: {} complete".format(t))
+    for i in range(100):
+        nodes = util.Counter()
+        initialize(nodes, roads, rdSegDis, divisor=50, distPassingTime=distPassingTime, timePolicy=[30,]*8, transPolicy = None)
+        t = 0
+        while t<time:
+            t += updateTime
+            update(nodes, roads, updateTime, t, rdSegDis, distPassingTime, divisor=100, speed=10)
+            # print("time: {} complete".format(t))
+        updatePolicy(nodes, roads, alpha=2)
+        print("Policy iteration {} completed".format(i+1))
     
     draw = util.Counter()
     for node in roads.nodes:
