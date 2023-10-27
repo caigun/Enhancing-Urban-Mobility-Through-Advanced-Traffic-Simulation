@@ -207,7 +207,8 @@ class RoadMap():
 
     def drawRoadsWithStress(self, stress=util.Counter()):
         colorGradient=[(51/256,255/256,51/256), (153/256,255/256,51/256), (255/256,255/256,51/256),\
-                       (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256)]
+                       (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256),\
+                        (0,0,0)]
         for nodes, rd in self.rdSegment.items():
             plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=colorGradient[stress[nodes]])
         pass
