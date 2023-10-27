@@ -219,21 +219,21 @@ if __name__ == '__main__':
     roads = RoadMap(df, 0.03)
     trafficLightPolicy = [20,]*8
     # traffic light green time for every adjacent road segment
-    carAddBaseOn_rdSegDis = True
+    carAddBaseOn_rdSegDis = False
     # whether the addings of cars based on the length of a road segment
     timeIntervalOfAddCar = 60
     # Add cars every {timeIntervalOfAddCar} seconds
-    distNumOfCarAdd = ("geometric", (3,))
+    distNumOfCarAdd = ("geometric", (4,))
     # the distribution of number of cars to add each time
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
     distCarSpeed = ("normal", (6,1))
     # the distribution of the speed for cars
-    distNumCarPass = ("poisson", (1,))
+    distNumCarPass = ("poisson", (2,))
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*2
+    totalTime = 60*60*1
     # the total time of our simulation system
     trafficLevels = [30,60,120,240,480]
     # trafficLevels = [t1,t2,t3,t4,t5]: the average waiting time in (0, t1] is viewed as low,
@@ -247,13 +247,12 @@ if __name__ == '__main__':
     folder_name = "figures"
     if not os.path.exists('./'+folder_name):
         os.mkdir(('./'+folder_name))
-    
-    simulation.simulation()
-    simulation.updatePolicy()
-    plt.figure()
-    simulation.drawTraffic()
-    plt.show()
-    plt.savefig(folder_name + "//Figure 1234.png")
+
+        simulation.simulation()
+        plt.figure()
+        simulation.drawTraffic()
+        plt.savefig(folder_name + "//Figure1.png")
+        plt.show()
 
     """If you want to try policy modification, use codes below"""
     # for i in range(10):
