@@ -248,11 +248,11 @@ if __name__ == '__main__':
     if not os.path.exists('./'+folder_name):
         os.mkdir(('./'+folder_name))
 
-        simulation.simulation()
-        plt.figure()
-        simulation.drawTraffic()
-        plt.savefig(folder_name + "//Figure1.png")
-        plt.show()
+    simulation.simulation()
+    plt.figure()
+    simulation.drawTraffic()
+    plt.savefig(folder_name + "//Figure1.png")
+    plt.show()
 
     """If you want to try policy modification, use codes below"""
     # for i in range(10):

@@ -5,6 +5,31 @@ import util
 import numpy as np
 import math
 
+def rightShift(pos1, pos2) -> tuple:
+    """
+    This function will compute the right-shift direction unit vector for the given
+    vector in map,
+    the vector in map is represented as pos1 --> pos2.
+
+    e.g.
+    (0,0) --> (1,0)
+    the right-shift direction unit vector is
+    (0,-1)
+
+    (2,1) --> (3,2)
+    the right-shift direction unit vector is
+    (0.707, 0.707)
+    """
+    # calculate and normalize the given vector first
+    vector=[pos2[0]-pos1[0], pos2[1]-pos1[1]]
+    vector=[i/math.sqrt(vector[0]**2+vector[1]**2) for i in vector]
+    x=vector[0]
+    y=vector[1]
+
+    # turn the direction 90 degree and return
+    return (y, -x)
+
+
 class lightNode():
     def __init__(self, latitude, longitude, cnn, streets=[], successors=set()):
         self.latitude=latitude
@@ -50,6 +75,14 @@ class RoadMap():
     * getSuccessors(node) : return all the successors that can go from this light. Stored in array
 
     * drawRoadsWithStress(stress) : draw all the roads with a given traffic jam stress dictionary.
+
+    * deleteRoadbyNode(node1, node2) &
+      deleteRoadbyCNN(cnn1, cnn2) : delete a road connected by node 1 and node 2, reference by cnn
+      or node.
+
+    * addRoadbyNode(node1, node2, roadName) &
+      addRoadbyCNN(cnn1, cnn2, roadName) : add a road connected by node 1 and node 2, reference by
+      cnn or node, and this road segment belongs to road "roadName".
     """
     def __init__(self,df,lenTol=float('inf')):
         self.df=df.loc[:,("STREET1","STREET2","STREET3","shape","CNN")]
@@ -58,6 +91,7 @@ class RoadMap():
         self._reconstructLights()
         self._reconstructNodes()
         self._reconstructRoads()
+        self.scale=0.00005
 
     def _reconstructLights(self):
         lightLocation=self.df["shape"]
@@ -210,8 +244,34 @@ class RoadMap():
                        (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256),\
                         (0,0,0)]
         for nodes, rd in self.rdSegment.items():
-            plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=colorGradient[stress[nodes]])
-        pass
+            n1, n2 = nodes
+            l1, l2 = (n1.longitude, n1.latitude), (n2.longitude, n2.latitude)
+            if l1==l2:
+                continue
+            direction=[i*self.scale for i in rightShift(l1,l2)]
+            plt.plot([i.longitude+direction[0] for i in nodes],[i.latitude+direction[1] for i in nodes], color=colorGradient[stress[nodes]])
+
+    def deleteRoadbyNode(self, node1:lightNode, node2:lightNode):
+        """
+        Delete a specific road connected node 1 and node 2
+        """
+        self.rdSegment[(node1, node2)]=None
+        self.rdSegment[(node2, node1)]=None
+        del(node1.successors, node2)    # need to verify the usage
+        del(node2.successors, node1)
+
+    def deleteRoadbyCNN(self, cnn1, cnn2):
+        self.deleteRoadbyNode(self.findNode(cnn1), self.findNode(cnn2))
+
+    def addRoadbyNode(self, node1:lightNode, node2:lightNode, roadName:str):
+        self.rdSegment[(node1, node2)]=roadName
+        self.rdSegment[(node2, node1)]=roadName
+        node1.successors.add(node2)
+        node2.successors.add(node1)
+
+    def addRoadbyCNN(self, cnn1, cnn2, roadName:str):
+        self.addRoadbyNode(self.findNode(cnn1), self.findNode(cnn2), roadName)
+
 
 if __name__ == '__main__':
     """
@@ -219,6 +279,9 @@ if __name__ == '__main__':
     """
     df=pd.read_csv("Traffic_Signals.csv")
     roads=RoadMap(df, 0.03)
+
+
+
     f = plt.figure()
     f.set_figwidth(10)
     f.set_figheight(6)
