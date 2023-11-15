@@ -4,10 +4,11 @@ import numpy as np
 import util
 import matplotlib.pyplot as plt
 import os
+import gui
 
 class Simulation():
     def __init__(self, roads, trafficLightPolicy, timeIntervalOfAddCar, carAddBaseOn_rdSegDis, distNumOfCarAdd, 
-    carAddPosRandom, distCarSpeed, distNumCarPass, updateTime, totalTime, trafficLevels):
+    carAddPosRandom, distCarSpeed, distNumCarPass, updateTime, totalTime, trafficLevels, animation, patchTime):
         self.roads = roads
         self.nodes = util.Counter()
         self.trafficLightPolicy = trafficLightPolicy
@@ -20,6 +21,8 @@ class Simulation():
         self.updateTime = updateTime
         self.totalTime = totalTime
         self.trafficLevels = trafficLevels
+        self.animation=animation
+        self.patchTime=patchTime
         self._rdSegmentDis()
 
     def _rdSegmentDis(self):
@@ -153,8 +156,25 @@ class Simulation():
 
     def simulation(self):
         self.initialization()
+        if animation:
+            self.patch=[]
+        else:
+            self.patch=None
         for time in range(0, self.totalTime, self.updateTime):
             self.simu(time+self.updateTime)
+            if animation:
+                draw = util.Counter()
+                for node in self.roads.nodes:
+                    successors = self.roads.getSuccessors(node)
+                    for succ in successors:
+                        hot = self.nodes[node]["Records"][(succ,node)][0]
+                        draw[(succ,node)] = self.trafficLevel(hot)
+                self.patch.append(draw)
+        if animation:
+            gui.run(self, False)
+
+    def loadStressData(self):
+        return self.patch
 
     def trafficLevel(self, hot):
         if hot < self.trafficLevels[0]:
@@ -241,8 +261,13 @@ if __name__ == '__main__':
     # in [t3, t4] is viewed as heavy, in [t4, t5] is viewed as extra heavy
     # in [t5, +oo) is  :( 
 
+    animation=True
+    # whether use the animation for step by step update
+    patchTime=60
+    # the time for each gui update
+
     simulation = Simulation(roads, trafficLightPolicy, timeIntervalOfAddCar, carAddBaseOn_rdSegDis, distNumOfCarAdd, 
-    carAddPosRandom, distCarSpeed, distNumCarPass, updateTime, totalTime, trafficLevels)
+    carAddPosRandom, distCarSpeed, distNumCarPass, updateTime, totalTime, trafficLevels, animation, patchTime)
 
     folder_name = "figures"
     if not os.path.exists('./'+folder_name):
