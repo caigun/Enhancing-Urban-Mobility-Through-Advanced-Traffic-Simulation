@@ -5,10 +5,12 @@ import util
 import matplotlib.pyplot as plt
 import os
 import gui
+import random
 
 class Simulation():
     def __init__(self, roads, trafficLightPolicy, timeIntervalOfAddCar, carAddBaseOn_rdSegDis, distNumOfCarAdd, 
-    carAddPosRandom, distCarSpeed, distNumCarPass, updateTime, totalTime, trafficLevels, animation, patchTime):
+    carAddPosRandom, timeIntervalOfDeleteCar, distNumOfCarDelete, distCarSpeed, distNumCarPass, updateTime, totalTime,
+    trafficLevels, animation, patchTime):
         self.roads = roads
         self.nodes = util.Counter()
         self.trafficLightPolicy = trafficLightPolicy
@@ -16,6 +18,8 @@ class Simulation():
         self.carAddBaseOn_rdSegDis = carAddBaseOn_rdSegDis
         self.distNumOfCarAdd = distNumOfCarAdd
         self.carAddPosRandom = carAddPosRandom
+        self.timeIntervalOfDeleteCar = timeIntervalOfDeleteCar
+        self.distNumOfCarDelete = distNumOfCarDelete
         self.distCarSpeed = distCarSpeed
         self.distNumCarPass = distNumCarPass
         self.updateTime = updateTime
@@ -66,7 +70,10 @@ class Simulation():
         for node in self.roads.nodes:
             self.nodes[node]["TransProb"] = util.Counter()
             successors = self.roads.getSuccessors(node)
-            self.nodes[node]["TransProb"] = 1/(len(successors)+1)
+            try:
+                self.nodes[node]["TransProb"] = 1/len(successors)
+            except:
+                print(node)
             
     def startRecord(self):
         """
@@ -116,9 +123,26 @@ class Simulation():
                         position = self.genRV(("uniform", (0, self.rdSegDis[(succ, node)])))
                     else:
                         position = 0
-                    speed = self.genRV(self.distCarSpeed)
+                    speed = max(self.genRV(self.distCarSpeed), 1)
                     self.nodes[node]["Queues"][(succ,node)].append(time + position/speed)
                 self.nodes[node]["Queues"][(succ,node)].sort()
+    
+    def deleteCar(self, time):
+        """
+        delete car in the system
+        """
+        if time%self.timeIntervalOfDeleteCar != 0:
+            return
+        for node in self.roads.nodes:
+            successors = self.roads.getSuccessors(node)
+            for succ in successors:
+                num = self.genRV(self.distNumOfCarAdd)
+                for _ in range(num):
+                    length = len(self.nodes[node]["Queues"][(succ,node)])
+                    if length == 0:
+                        break
+                    deleteindex = random.randint(0, length-1)
+                    del self.nodes[node]["Queues"][(succ,node)][deleteindex]
     
     def updateQueues(self, time):
         """
@@ -142,9 +166,9 @@ class Simulation():
                 record = self.nodes[node]["Records"][(succ,node)]
                 self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
                 u = np.random.uniform()
-                index0 = int(u*len(successors)+1)
-                if index0 == len(successors):
-                    continue
+                index0 = int(u*len(successors))
+                # if index0 == len(successors):
+                #     continue
                 success = list(successors)[index0]
                 speed = self.genRV(self.distCarSpeed)
                 self.nodes[success]["Queues"][(node,success)].append(time+self.updateTime+self.rdSegDis[(node, success)]/speed)
@@ -153,6 +177,7 @@ class Simulation():
     def simu(self, time):
         self.addCars(time)
         self.updateQueues(time)
+        self.deleteCar(time)
 
     def simulation(self):
         self.initialization()
@@ -244,9 +269,13 @@ if __name__ == '__main__':
     timeIntervalOfAddCar = 60
     # Add cars every {timeIntervalOfAddCar} seconds
     distNumOfCarAdd = ("geometric", (4,))
-    # the distribution of number of cars to add each time
+    # the distribution of number of cars to add each time on each road segment
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
+    timeIntervalOfDeleteCar = 180
+    # Delete cars every {timeIntervalOfDeleteCar} seconds
+    distNumOfCarDelete = ("constant", (0,))
+    # the distribution of number of cars to delete each time on each road segment
     distCarSpeed = ("normal", (6,1))
     # the distribution of the speed for cars
     distNumCarPass = ("poisson", (2,))
@@ -261,13 +290,14 @@ if __name__ == '__main__':
     # in [t3, t4] is viewed as heavy, in [t4, t5] is viewed as extra heavy
     # in [t5, +oo) is  :( 
 
-    animation=True
+    animation = False
     # whether use the animation for step by step update
     patchTime=60
     # the time for each gui update
 
     simulation = Simulation(roads, trafficLightPolicy, timeIntervalOfAddCar, carAddBaseOn_rdSegDis, distNumOfCarAdd, 
-    carAddPosRandom, distCarSpeed, distNumCarPass, updateTime, totalTime, trafficLevels, animation, patchTime)
+    carAddPosRandom, timeIntervalOfDeleteCar, distNumOfCarDelete, distCarSpeed, distNumCarPass, updateTime, totalTime, 
+    trafficLevels, animation, patchTime)
 
     folder_name = "figures"
     if not os.path.exists('./'+folder_name):
