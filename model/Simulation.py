@@ -196,7 +196,7 @@ class Simulation():
             for succ in successors:
                 hot = self.nodes[node]["Records"][(succ,node)][0]
                 draw[(succ,node)] = self.trafficLevel(hot)
-        self.roads.drawRoadsWithStress(stress=draw)
+        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.loadStressData())
         # plt.show()
     
     def updatePolicy(self, alpha=2):
@@ -274,10 +274,8 @@ if __name__ == '__main__':
         os.mkdir(('./'+folder_name))
 
     simulation.simulation()
-    plt.figure()
     simulation.drawTraffic()
     plt.savefig(folder_name + "//Figure1.png")
-    plt.show()
 
     """If you want to try policy modification, use codes below"""
     # for i in range(10):

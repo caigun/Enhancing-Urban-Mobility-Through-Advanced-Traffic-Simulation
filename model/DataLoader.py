@@ -5,7 +5,7 @@ import util
 import numpy as np
 import math
 
-def rightShift(pos1, pos2) -> tuple:
+def rightShift(pos1, pos2):
     """
     This function will compute the right-shift direction unit vector for the given
     vector in map,
@@ -91,6 +91,7 @@ class RoadMap():
         self._reconstructLights()
         self._reconstructNodes()
         self._reconstructRoads()
+        self._modifyByConfig()
         self.scale=0.00005
 
     def _reconstructLights(self):
@@ -104,6 +105,27 @@ class RoadMap():
             dty.append(float(match.group(2)))
         self.df["dtx"]=dtx
         self.df["dty"]=dty
+    
+    def _modifyByConfig(self):
+        with open("config.txt", 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        for line in lines:
+            if line[0:3]=="***":
+                continue
+            data = line.strip().split(",")
+            try:
+                if data[2]=="a":
+                    self.addRoadbyCNN(data[0], data[1])
+                elif data[2]=="d":
+                    self.deleteRoadbyCNN(data[0], data[1])
+                else:
+                    print("WARNING: Modifying road map exit with excetions:",\
+                          data[0],"and", data[1], "are not valid CNN.")
+                    break
+            except:
+                print("WARNING: Modifying road map exit with exceptions:",\
+                      data[0],"and", data[1], "are not valid CNN that connect a road.")
+                break
 
     def drawLights(self, highlight=None):
         plt.scatter(self.df["dtx"], self.df["dty"], s=5)
@@ -239,7 +261,7 @@ class RoadMap():
         for nodes, rd in self.rdSegment.items():
             plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=(110/256,130/256,230/256))
 
-    def drawRoadsWithStress(self, stress=util.Counter()):
+    def drawRoadsWithStress(self, stress=util.Counter(), wrtT=False):
         colorGradient=[(51/256,255/256,51/256), (153/256,255/256,51/256), (255/256,255/256,51/256),\
                        (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256),\
                         (0,0,0)]
@@ -250,6 +272,14 @@ class RoadMap():
                 continue
             direction=[i*self.scale for i in rightShift(l1,l2)]
             plt.plot([i.longitude+direction[0] for i in nodes],[i.latitude+direction[1] for i in nodes], color=colorGradient[stress[nodes]])
+        plt.show()
+
+        if wrtT:
+            stress=[]
+            for stress_data in wrtT:
+                stress.append(sum(stress_data.values())/len(stress_data.values()))
+            plt.plot([i for i in range(len(stress))], stress)
+            plt.show()
 
     def deleteRoadbyNode(self, node1:lightNode, node2:lightNode):
         """

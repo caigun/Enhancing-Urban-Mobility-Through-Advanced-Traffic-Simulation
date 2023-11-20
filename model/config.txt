@@ -1,0 +1,6 @@
+*** Modify road map instructions:
+*** Format the data in the following way:
+*** CNN1,CNN2,method
+*** CNN is the cnn of the node, and method=a/d, a is add, d is delete
+*** Do not use space between commas
+*** for example: 111,222,a
