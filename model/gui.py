@@ -42,6 +42,7 @@ def run(model, save=True):
     myfont=pygame.font.Font(None, 60)
     black=0,0,0
     running = True
+    stress=[]
     while running and i<max_i:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -50,6 +51,7 @@ def run(model, save=True):
         screen.fill((224, 255, 255)) # sky-blue background
 
         drawRoadsWithStress(screen, model, stress_data[i])
+        stress.append(sum(stress_data[i].values())/len(stress_data[i].values()))
         i+=1
         textImage=myfont.render("Time: "+str(i), True, black)
         screen.blit(textImage,(10,10))

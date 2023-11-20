@@ -226,7 +226,7 @@ class Simulation():
             for succ in successors:
                 hot = self.nodes[node]["Records"][(succ,node)][0]
                 draw[(succ,node)] = self.trafficLevel(hot)
-        self.roads.drawRoadsWithStress(stress=draw)
+        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.loadStressData())
         # plt.show()
     
     def updatePolicy(self, alpha=2):
@@ -271,9 +271,9 @@ if __name__ == '__main__':
     # traffic light green time for every adjacent road segment
     carAddBaseOn_rdSegDis = False
     # whether the addings of cars based on the length of a road segment
-    timeIntervalOfAddCar = 1
+    timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
-    distNumOfCarAdd = ("poisson", (6,))
+    distNumOfCarAdd = ("poisson", (10,))
     # the distribution of number of cars to add each time on each road segment
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
@@ -289,14 +289,14 @@ if __name__ == '__main__':
     # uodate our system every {updateTime} seconds
     totalTime = 60*60*1
     # the total time of our simulation system
-    # trafficLevels = [30,60,120,240,480]
-    trafficLevels = [2,4,8,16,32]
+    trafficLevels = [30,60,120,240,480]
+    # trafficLevels = [2,4,8,16,32]
     # trafficLevels = [t1,t2,t3,t4,t5]: the average waiting time in (0, t1] is viewed as low,
     # in [t1, t2] is viewed as light, in [t2, t3] is viewed as moderate
     # in [t3, t4] is viewed as heavy, in [t4, t5] is viewed as extra heavy
     # in [t5, +oo) is  :( 
 
-    animation = False
+    animation = True
     # whether use the animation for step by step update
     patchTime=60
     # the time for each gui update
@@ -310,10 +310,8 @@ if __name__ == '__main__':
         os.mkdir(('./'+folder_name))
 
     simulation.simulation()
-    plt.figure()
     simulation.drawTraffic()
     plt.savefig(folder_name + "//Figure1.png")
-    plt.show()
 
     """If you want to try policy modification, use codes below"""
     # for i in range(10):
