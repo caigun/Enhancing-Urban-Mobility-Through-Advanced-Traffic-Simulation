@@ -25,8 +25,9 @@ class Simulation():
         self.updateTime = updateTime
         self.totalTime = totalTime
         self.trafficLevels = trafficLevels
-        self.animation=animation
-        self.patchTime=patchTime
+        self.animation = animation
+        self.patchTime = patchTime
+        self.totalCar = 0
         self._rdSegmentDis()
 
     def _rdSegmentDis(self):
@@ -73,7 +74,7 @@ class Simulation():
             try:
                 self.nodes[node]["TransProb"] = 1/len(successors)
             except:
-                print(node)
+                pass
             
     def startRecord(self):
         """
@@ -111,6 +112,7 @@ class Simulation():
         """
         if time%self.timeIntervalOfAddCar != 0:
             return
+        self.totalCar = 0
         for node in self.roads.nodes:
             successors = self.roads.getSuccessors(node)
             for succ in successors:
@@ -126,6 +128,8 @@ class Simulation():
                     speed = max(self.genRV(self.distCarSpeed), 1)
                     self.nodes[node]["Queues"][(succ,node)].append(time + position/speed)
                 self.nodes[node]["Queues"][(succ,node)].sort()
+                self.totalCar += len(self.nodes[node]["Queues"][(succ,node)])
+        self.distNumOfCarDelete
     
     def deleteCar(self, time):
         """
@@ -163,12 +167,12 @@ class Simulation():
             for car in carPass:
                 if car > time:
                     break
+                if random.random()<0.5:
+                    continue
                 record = self.nodes[node]["Records"][(succ,node)]
                 self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
                 u = np.random.uniform()
                 index0 = int(u*len(successors))
-                # if index0 == len(successors):
-                #     continue
                 success = list(successors)[index0]
                 speed = self.genRV(self.distCarSpeed)
                 self.nodes[success]["Queues"][(node,success)].append(time+self.updateTime+self.rdSegDis[(node, success)]/speed)
@@ -177,7 +181,7 @@ class Simulation():
     def simu(self, time):
         self.addCars(time)
         self.updateQueues(time)
-        self.deleteCar(time)
+        # self.deleteCar(time)
 
     def simulation(self):
         self.initialization()
@@ -195,6 +199,7 @@ class Simulation():
                         hot = self.nodes[node]["Records"][(succ,node)][0]
                         draw[(succ,node)] = self.trafficLevel(hot)
                 self.patch.append(draw)
+        print(self.totalCar)
         if animation:
             gui.run(self, False)
 
@@ -266,15 +271,15 @@ if __name__ == '__main__':
     # traffic light green time for every adjacent road segment
     carAddBaseOn_rdSegDis = False
     # whether the addings of cars based on the length of a road segment
-    timeIntervalOfAddCar = 60
+    timeIntervalOfAddCar = 1
     # Add cars every {timeIntervalOfAddCar} seconds
-    distNumOfCarAdd = ("geometric", (4,))
+    distNumOfCarAdd = ("poisson", (6,))
     # the distribution of number of cars to add each time on each road segment
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
-    timeIntervalOfDeleteCar = 180
+    timeIntervalOfDeleteCar = 1
     # Delete cars every {timeIntervalOfDeleteCar} seconds
-    distNumOfCarDelete = ("constant", (0,))
+    distNumOfCarDelete = ("poisson", (6,))
     # the distribution of number of cars to delete each time on each road segment
     distCarSpeed = ("normal", (6,1))
     # the distribution of the speed for cars
@@ -284,7 +289,8 @@ if __name__ == '__main__':
     # uodate our system every {updateTime} seconds
     totalTime = 60*60*1
     # the total time of our simulation system
-    trafficLevels = [30,60,120,240,480]
+    # trafficLevels = [30,60,120,240,480]
+    trafficLevels = [2,4,8,16,32]
     # trafficLevels = [t1,t2,t3,t4,t5]: the average waiting time in (0, t1] is viewed as low,
     # in [t1, t2] is viewed as light, in [t2, t3] is viewed as moderate
     # in [t3, t4] is viewed as heavy, in [t4, t5] is viewed as extra heavy
