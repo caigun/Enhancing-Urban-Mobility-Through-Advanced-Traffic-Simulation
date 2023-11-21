@@ -136,7 +136,7 @@ class RoadMap():
                 y.append(i.latitude)
                 x.append(i.longitude)
             plt.scatter(x,y,s=5,color='red')
-        # plt.show()
+        plt.show()
 
     def findNode(self, cnn):
         """
@@ -250,7 +250,13 @@ class RoadMap():
     def getSuccessors(self, node):
         return node.successors
 
-    def drawRoads(self, highlight=None):
+    def drawRoads(self, highlight=None, withName=False):
+        if withName:
+            for node in self.nodes:
+                x=node.longitude
+                y=node.latitude
+                plt.text(x,y,str(node.cnn))
+        plt.show()
         if highlight!=None:
             for nodes, road in self.rdSegment.items():
                 if road==highlight:
@@ -271,14 +277,21 @@ class RoadMap():
             if l1==l2:
                 continue
             direction=[i*self.scale for i in rightShift(l1,l2)]
-            plt.plot([i.longitude+direction[0] for i in nodes],[i.latitude+direction[1] for i in nodes], color=colorGradient[stress[nodes]])
+            plt.plot([i.longitude+direction[0] for i in nodes],[i.latitude+direction[1] for i in nodes], color=colorGradient[int(stress[nodes])])
         plt.show()
 
         if wrtT:
             stress=[]
+            var=[]
             for stress_data in wrtT:
                 stress.append(sum(stress_data.values())/len(stress_data.values()))
-            plt.plot([i for i in range(len(stress))], stress)
+                var.append(np.std(list(stress_data.values())))
+            t=[2*i/60 for i in range(len(stress))]
+            plt.plot(t, stress)
+            plt.fill_between(t, [stress[i]-var[i] for i in range(len(stress))],\
+                            [stress[i]+var[i] for i in range(len(stress))], alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
+            plt.xlabel("t /min")
+            plt.ylabel("Overall stress /level")
             plt.show()
 
     def deleteRoadbyNode(self, node1:lightNode, node2:lightNode):
@@ -315,8 +328,8 @@ if __name__ == '__main__':
     f = plt.figure()
     f.set_figwidth(10)
     f.set_figheight(6)
-    # roads.drawRoads("VALENCIA")
-    roads.drawRoadsWithStress()
-    roads.drawLights("VALENCIA")
+    roads.drawRoads(withName=True)
+    # roads.drawRoadsWithStress()
+    # roads.drawLights("VALENCIA")
     # roads.drawRoads()
-    plt.show()
+    # plt.show()
