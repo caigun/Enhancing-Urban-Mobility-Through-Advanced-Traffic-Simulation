@@ -53,12 +53,12 @@ def run(model, save=True):
         drawRoadsWithStress(screen, model, stress_data[i])
         stress.append(sum(stress_data[i].values())/len(stress_data[i].values()))
         i+=1
-        textImage=myfont.render("Time: "+str(i), True, black)
+        textImage=myfont.render("Time: "+str(i*model.updateTime), True, black)
         screen.blit(textImage,(10,10))
         pygame.display.flip()
         if save:
             pygame.image.save(screen, os.path.join(save_dir, f"frame_{i}.png"))
 
-        time.sleep(0.01)
+        # time.sleep(0.01)
 
     pygame.quit()

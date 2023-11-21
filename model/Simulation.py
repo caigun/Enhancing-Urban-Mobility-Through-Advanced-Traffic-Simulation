@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import gui
 import random
+import math
 
 class Simulation():
     def __init__(self, roads, trafficLightPolicy, timeIntervalOfAddCar, carAddBaseOn_rdSegDis, distNumOfCarAdd, 
@@ -105,6 +106,38 @@ class Simulation():
             return max(np.random.normal(loc=dist[1][0], scale=dist[1][1]), 0)
         if dist[0] == "poisson":
             return np.random.poisson(lam=dist[1][0])
+        if dist[0] == "time-varying-rate":
+            """
+            In this case, the time varying parameters is a list in the form of:
+            [(t0, parameter0), (t1, parameter1), (t2, parameter2), ...]
+            where t0, t1, t2, ... is the timestamps that the value will change
+            and parameter0, parameter1, parameter2, ... is the new values
+            t0 must be nonpositive.
+            """
+            for t,p in dist[1]:
+                if self.time>=t:
+                    return self.genRV(self, ["poisson", p])
+            print("Runtime error: invalid time:", int(t), "is not a valid timestamp.")
+        if dist[0] == "time-varying-rate-linear":
+            """
+            In this case, the time varying parameters is a list in the form of:
+            [(t0, parameter0), (t1, parameter1), (t2, parameter2), ...]
+            where t0, t1, t2, ... is the timestamps that the value will change
+            and parameter0, parameter1, parameter2, ... is the new node values.
+            t0 must be nonpositive.
+            """
+            i=0
+            while True:
+                t,p=dist[1][i]
+                if self.time>=t:
+                    if self.time==0:
+                        return self.genRV(self, ["poisson", p])
+                    else:
+                        return self.genRV(self, ["poisson", (self.time-t)/(t-dist[1][i-1][0])*(p-dist[1][i-1][1])])
+                i+=1
+                if i==len(dist):
+                    break
+            print("Runtime error: invalid time:", int(t), "is not a valid timestamp.")
     
     def addCars(self, time):
         """
@@ -117,7 +150,43 @@ class Simulation():
             successors = self.roads.getSuccessors(node)
             for succ in successors:
                 if self.carAddBaseOn_rdSegDis:
-                    num = int(self.genRV((self.distNumOfCarAdd[0], (self.distNumOfCarAdd[1][0]*self.rdSegDis[(succ, node)]/200,))))
+                    if self.distNumOfCarAdd[0]=="time-varying-rate":
+                        """
+                        In this case, the time varying parameters is a list in the form of:
+                        [(t0, parameter0), (t1, parameter1), (t2, parameter2), ...]
+                        where t0, t1, t2, ... is the timestamps that the value will change
+                        and parameter0, parameter1, parameter2, ... is the new values
+                        t0 must be nonpositive.
+                        """
+                        num=None
+                        for t,p in self.distNumOfCarAdd[1]:
+                            if self.time>=t:
+                                num=self.genRV(["poisson", [p*math.log10(self.rdSegDis[(succ, node)]/200+1),]])
+                        if num==None:print("Runtime error: invalid time:", int(t), "is not a valid timestamp.")
+                    elif self.distNumOfCarAdd[0]=="time-varying-rate-linear":
+                        """
+                        In this case, the time varying parameters is a list in the form of:
+                        [(t0, parameter0), (t1, parameter1), (t2, parameter2), ...]
+                        where t0, t1, t2, ... is the timestamps that the value will change
+                        and parameter0, parameter1, parameter2, ... is the new node values.
+                        t0 must be nonpositive.
+                        """
+                        i=0
+                        dist=self.distNumOfCarAdd
+                        while True:
+                            t,p=dist[1][i]
+                            if self.time>=t:
+                                if self.time==0:
+                                    return self.genRV(self, ["poisson", p*math.log10(self.rdSegDis[(succ, node)]/200+1)])
+                                else:
+                                    return self.genRV(self, ["poisson", (self.time-t)/(t-dist[1][i-1][0])*(p-dist[1][i-1][1])\
+                                                             *math.log10(self.rdSegDis[(succ, node)]/200+1)])
+                            i+=1
+                            if i==len(dist):
+                                print("Runtime error: invalid time:", int(t), "is not a valid timestamp.")
+                                break
+                    else:
+                        num = int(self.genRV((self.distNumOfCarAdd[0], (self.distNumOfCarAdd[1][0]*math.log10(self.rdSegDis[(succ, node)]/200+1),))))
                 else:
                     num = self.genRV(self.distNumOfCarAdd)
                 for _ in range(num):
@@ -167,7 +236,7 @@ class Simulation():
             for car in carPass:
                 if car > time:
                     break
-                if random.random()<0.5:
+                if random.random()<0.1:
                     continue
                 record = self.nodes[node]["Records"][(succ,node)]
                 self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
@@ -189,8 +258,9 @@ class Simulation():
             self.patch=[]
         else:
             self.patch=None
-        for time in range(0, self.totalTime, self.updateTime):
-            self.simu(time+self.updateTime)
+        self.time=0
+        while self.time<self.totalTime:
+            self.simu(self.time+self.updateTime)
             if animation:
                 draw = util.Counter()
                 for node in self.roads.nodes:
@@ -199,7 +269,8 @@ class Simulation():
                         hot = self.nodes[node]["Records"][(succ,node)][0]
                         draw[(succ,node)] = self.trafficLevel(hot)
                 self.patch.append(draw)
-        print(self.totalCar)
+            self.time+=self.updateTime
+        # print(self.totalCar)
         if animation:
             gui.run(self, False)
 
@@ -269,11 +340,11 @@ if __name__ == '__main__':
     roads = RoadMap(df, 0.03)
     trafficLightPolicy = [20,]*8
     # traffic light green time for every adjacent road segment
-    carAddBaseOn_rdSegDis = False
+    carAddBaseOn_rdSegDis = True
     # whether the addings of cars based on the length of a road segment
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
-    distNumOfCarAdd = ("poisson", (10,))
+    distNumOfCarAdd = ("time-varying-rate", [(0,3),(3000,6),(6500, 3)])
     # the distribution of number of cars to add each time on each road segment
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
@@ -287,9 +358,9 @@ if __name__ == '__main__':
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*1
+    totalTime = 60*60*2
     # the total time of our simulation system
-    trafficLevels = [30,60,120,240,480]
+    trafficLevels = [15,20,25,30,35]
     # trafficLevels = [2,4,8,16,32]
     # trafficLevels = [t1,t2,t3,t4,t5]: the average waiting time in (0, t1] is viewed as low,
     # in [t1, t2] is viewed as light, in [t2, t3] is viewed as moderate
