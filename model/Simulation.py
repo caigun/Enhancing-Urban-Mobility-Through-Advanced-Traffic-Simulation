@@ -344,11 +344,7 @@ if __name__ == '__main__':
     # whether the addings of cars based on the length of a road segment
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
-<<<<<<< HEAD
-    distNumOfCarAdd = ("poisson", (5,))
-=======
     distNumOfCarAdd = ("time-varying-rate", [(0,3),(3000,6),(6500, 3)])
->>>>>>> 1291973b3cb063a5ecd9c623b9e8678fccb1e515
     # the distribution of number of cars to add each time on each road segment
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
