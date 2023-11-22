@@ -267,7 +267,7 @@ class RoadMap():
         for nodes, rd in self.rdSegment.items():
             plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=(110/256,130/256,230/256))
 
-    def drawRoadsWithStress(self, stress=util.Counter(), wrtT=False):
+    def drawRoadsWithStress(self, stress=util.Counter(), wrtT=False, nca=None):
         colorGradient=[(51/256,255/256,51/256), (153/256,255/256,51/256), (255/256,255/256,51/256),\
                        (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256),\
                         (0,0,0)]
@@ -280,18 +280,35 @@ class RoadMap():
             plt.plot([i.longitude+direction[0] for i in nodes],[i.latitude+direction[1] for i in nodes], color=colorGradient[int(stress[nodes])])
         plt.show()
 
-        if wrtT:
+        if wrtT and nca:
             stress=[]
             var=[]
             for stress_data in wrtT:
                 stress.append(sum(stress_data.values())/len(stress_data.values()))
                 var.append(np.std(list(stress_data.values())))
             t=[2*i/60 for i in range(len(stress))]
-            plt.plot(t, stress)
-            plt.fill_between(t, [stress[i]-var[i] for i in range(len(stress))],\
-                            [stress[i]+var[i] for i in range(len(stress))], alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
-            plt.xlabel("t /min")
-            plt.ylabel("Overall stress /level")
+            # plt.plot(t, stress)
+
+            fig, ax1 = plt.subplots()
+
+            color = 'tab:red'
+            ax1.set_xlabel('time (min)')
+            ax1.set_ylabel('avg waiting time (s)', color=color)
+            ax1.plot(t, stress, color=color)
+            ax1.tick_params(axis='y', labelcolor=color)
+
+            ax2 = ax1.twinx()
+
+            color = 'tab:blue'
+            ax2.set_ylabel('Number of joining cars', color=color)
+            ax2.plot([i/2 for i in range(len(nca))], nca, color=color)
+            ax2.tick_params(axis='y', labelcolor=color)
+            fig.tight_layout()
+
+            # plt.fill_between(t, [stress[i]-var[i] for i in range(len(stress))],\
+            #                 [stress[i]+var[i] for i in range(len(stress))], alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
+            # plt.xlabel("t /min")
+            # plt.ylabel("Overall stress /level")
             plt.show()
 
     def deleteRoadbyNode(self, node1:lightNode, node2:lightNode):

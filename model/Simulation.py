@@ -29,6 +29,7 @@ class Simulation():
         self.animation = animation
         self.patchTime = patchTime
         self.totalCar = 0
+        self.numNewCar = []
         self._rdSegmentDis()
 
     def _rdSegmentDis(self):
@@ -145,7 +146,14 @@ class Simulation():
         """
         if time%self.timeIntervalOfAddCar != 0:
             return
-        self.totalCar = 0
+        prev=self.totalCar
+        # j=0
+        # for node in self.roads.nodes:
+        #     for successor in self.roads.getSuccessors(node):
+        #         j+=len(self.nodes[node]["Queues"][(successor,node)])
+        # if prev!=j:
+        #     print(prev,j)
+        # self.totalCar = 0
         for node in self.roads.nodes:
             successors = self.roads.getSuccessors(node)
             for succ in successors:
@@ -173,22 +181,28 @@ class Simulation():
                         """
                         i=0
                         dist=self.distNumOfCarAdd
+                        num=None
                         while True:
                             t,p=dist[1][i]
-                            if self.time>=t:
-                                if self.time==0:
-                                    return self.genRV(self, ["poisson", p*math.log10(self.rdSegDis[(succ, node)]/200+1)])
-                                else:
-                                    return self.genRV(self, ["poisson", (self.time-t)/(t-dist[1][i-1][0])*(p-dist[1][i-1][1])\
-                                                             *math.log10(self.rdSegDis[(succ, node)]/200+1)])
-                            i+=1
-                            if i==len(dist):
+                            if t<self.time:
+                                i+=1
+                                continue
+                            elif i==len(dist[1]):
                                 print("Runtime error: invalid time:", int(t), "is not a valid timestamp.")
                                 break
+                            else:
+                                if self.time==0:
+                                    num=self.genRV(["poisson", [p*math.log10(self.rdSegDis[(succ, node)]/200+1)]])
+                                else:
+                                    num=self.genRV(["poisson", [((self.time-dist[1][i-1][0])/(t-dist[1][i-1][0])*(p-dist[1][i-1][1])+dist[1][i-1][1])\
+                                                             *math.log10(self.rdSegDis[(succ, node)]/200+1)]])
+                                break
+                            
                     else:
                         num = int(self.genRV((self.distNumOfCarAdd[0], (self.distNumOfCarAdd[1][0]*math.log10(self.rdSegDis[(succ, node)]/200+1),))))
                 else:
                     num = self.genRV(self.distNumOfCarAdd)
+                self.totalCar+=num
                 for _ in range(num):
                     if self.carAddPosRandom:
                         position = self.genRV(("uniform", (0, self.rdSegDis[(succ, node)])))
@@ -197,8 +211,9 @@ class Simulation():
                     speed = max(self.genRV(self.distCarSpeed), 1)
                     self.nodes[node]["Queues"][(succ,node)].append(time + position/speed)
                 self.nodes[node]["Queues"][(succ,node)].sort()
-                self.totalCar += len(self.nodes[node]["Queues"][(succ,node)])
-        self.distNumOfCarDelete
+                # self.totalCar += len(self.nodes[node]["Queues"][(succ,node)])
+        self.numNewCar.append(self.totalCar-prev)
+        # self.distNumOfCarDelete
     
     def deleteCar(self, time):
         """
@@ -237,6 +252,7 @@ class Simulation():
                 if car > time:
                     break
                 if random.random()<0.1:
+                    self.totalCar-=1
                     continue
                 record = self.nodes[node]["Records"][(succ,node)]
                 self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
@@ -256,23 +272,37 @@ class Simulation():
         self.initialization()
         if animation:
             self.patch=[]
+            self.wtt=[]
         else:
             self.patch=None
+            self.wtt=None
         self.time=0
         while self.time<self.totalTime:
+            # print(self.totalCar)
             self.simu(self.time+self.updateTime)
             if animation:
                 draw = util.Counter()
+                waitingTime = util.Counter()
                 for node in self.roads.nodes:
                     successors = self.roads.getSuccessors(node)
                     for succ in successors:
                         hot = self.nodes[node]["Records"][(succ,node)][0]
                         draw[(succ,node)] = self.trafficLevel(hot)
+                        waitingTime[(succ,node)] = hot
                 self.patch.append(draw)
+                self.wtt.append(waitingTime)
             self.time+=self.updateTime
+            if self.time%100==0:
+                os.system('clear')
+                print("=================================")
+                print("Progress: {:.2f}%".format(self.time/self.totalTime*100))
+                print("Iteration:", self.time, "/", self.totalTime)
+                print("Avg waiting time: {:.2f}".format(sum(waitingTime.values())/len((waitingTime).values()),"(second)"))
+                print("=================================")
         # print(self.totalCar)
         if animation:
-            gui.run(self, False)
+            # gui.run(self, False)
+            pass
 
     def loadStressData(self):
         return self.patch
@@ -297,7 +327,7 @@ class Simulation():
             for succ in successors:
                 hot = self.nodes[node]["Records"][(succ,node)][0]
                 draw[(succ,node)] = self.trafficLevel(hot)
-        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.loadStressData())
+        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.wtt, nca=self.numNewCar)
         # plt.show()
     
     def updatePolicy(self, alpha=2):
@@ -344,27 +374,45 @@ if __name__ == '__main__':
     # whether the addings of cars based on the length of a road segment
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
-<<<<<<< HEAD
-    distNumOfCarAdd = ("poisson", (5,))
-=======
-    distNumOfCarAdd = ("time-varying-rate", [(0,3),(3000,6),(6500, 3)])
->>>>>>> 1291973b3cb063a5ecd9c623b9e8678fccb1e515
+    distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5),(3000,1),(4000,1), (7000, 0.5),(float('inf'),2)])
     # the distribution of number of cars to add each time on each road segment
+    """
+    pattern that you can choose from: time-varying-rate
+    In this case, the time varying parameters is a list in the form of:
+    [(t0, parameter0), (t1, parameter1), (t2, parameter2), ...]
+    where t0, t1, t2, ... is the timestamps that the value will change
+    and parameter0, parameter1, parameter2, ... is the new values
+    t0 must be nonpositive.
+
+    pattern that you can choose from: time-varying-rate-linear
+    In this case, the time varying parameters is a list in the form of:
+    [(t0, parameter0), (t1, parameter1), (t2, parameter2), ...]
+    where t0, t1, t2, ... is the timestamps that the value will change
+    and parameter0, parameter1, parameter2, ... is the new node values.
+    t0 must be nonpositive.
+
+    other pattern you can choose from: poisson, constant, uniform, geometric, exponential
+    """
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
     timeIntervalOfDeleteCar = 1
     # Delete cars every {timeIntervalOfDeleteCar} seconds
+
+    
+    # ========== THIS PARAMETER IS NO LONGER IN USE ==========
     distNumOfCarDelete = ("poisson", (6,))
     # the distribution of number of cars to delete each time on each road segment
+    # ========================================================
+
     distCarSpeed = ("normal", (6,1))
     # the distribution of the speed for cars
-    distNumCarPass = ("poisson", (2,))
+    distNumCarPass = ("poisson", (1/2,))
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*2
+    totalTime = 60*60*3
     # the total time of our simulation system
-    trafficLevels = [15,20,25,30,35]
+    trafficLevels = [40,60,80,100,120]
     # trafficLevels = [2,4,8,16,32]
     # trafficLevels = [t1,t2,t3,t4,t5]: the average waiting time in (0, t1] is viewed as low,
     # in [t1, t2] is viewed as light, in [t2, t3] is viewed as moderate
