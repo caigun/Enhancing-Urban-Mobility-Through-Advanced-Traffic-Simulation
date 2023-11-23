@@ -7,6 +7,7 @@ import os
 import gui
 import random
 import math
+import time
 
 class Simulation():
     def __init__(self, roads, trafficLightPolicy, timeIntervalOfAddCar, carAddBaseOn_rdSegDis, distNumOfCarAdd, 
@@ -90,6 +91,7 @@ class Simulation():
     
     def initialization(self):
         self.initialCars()
+        self.systemTime=time.time()
         self.assignPolicy()
         self.createTransfunc()
         self.startRecord()
@@ -295,11 +297,19 @@ class Simulation():
             if self.time%100==0:
                 os.system('clear')
                 print("=================================")
+                print("Time: {:.1f} sec".format(time.time()-self.systemTime))
                 print("Progress: {:.2f}%".format(self.time/self.totalTime*100))
                 print("Iteration:", self.time, "/", self.totalTime)
                 print("Avg waiting time: {:.2f}".format(sum(waitingTime.values())/len((waitingTime).values()),"(second)"))
                 print("=================================")
         # print(self.totalCar)
+        os.system('clear')
+        print("=================================")
+        print("Simulation Completed!")
+        print("Time: {:.1f} sec".format(time.time()-self.systemTime))
+        print("Time: {:.2f}".format(time.time()-self.systemTime))
+        print("Iteration:", self.time, "/", self.totalTime)
+        print("=================================")
         if animation:
             # gui.run(self, False)
             pass
@@ -374,7 +384,7 @@ if __name__ == '__main__':
     # whether the addings of cars based on the length of a road segment
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
-    distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5),(3000,1),(4000,1), (7000, 0.5),(float('inf'),2)])
+    distNumOfCarAdd = ("time-varying-rate-linear", [(0,1),(3000,1.5),(4000,1.5), (7000, 1),(float('inf'),1.5)])
     # the distribution of number of cars to add each time on each road segment
     """
     pattern that you can choose from: time-varying-rate
@@ -410,7 +420,7 @@ if __name__ == '__main__':
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*3
+    totalTime = 60*60*6
     # the total time of our simulation system
     trafficLevels = [40,60,80,100,120]
     # trafficLevels = [2,4,8,16,32]
