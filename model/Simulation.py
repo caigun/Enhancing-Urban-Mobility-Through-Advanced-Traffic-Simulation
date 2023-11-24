@@ -134,9 +134,9 @@ class Simulation():
                 t,p=dist[1][i]
                 if self.time>=t:
                     if self.time==0:
-                        return self.genRV(self, ["poisson", p])
+                        return self.genRV(["poisson", (p,)])
                     else:
-                        return self.genRV(self, ["poisson", (self.time-t)/(t-dist[1][i-1][0])*(p-dist[1][i-1][1])])
+                        return self.genRV(["poisson", ((self.time-t)/(t-dist[1][i-1][0])*(p-dist[1][i-1][1]),)])
                 i+=1
                 if i==len(dist):
                     break
@@ -171,7 +171,7 @@ class Simulation():
                         num=None
                         for t,p in self.distNumOfCarAdd[1]:
                             if self.time>=t:
-                                num=self.genRV(["poisson", [p*math.log10(self.rdSegDis[(succ, node)]/200+1),]])
+                                num=self.genRV(["poisson", [p*math.log10(2.4+self.rdSegDis[(succ, node)]/500),]])
                         if num==None:print("Runtime error: invalid time:", int(t), "is not a valid timestamp.")
                     elif self.distNumOfCarAdd[0]=="time-varying-rate-linear":
                         """
@@ -194,14 +194,13 @@ class Simulation():
                                 break
                             else:
                                 if self.time==0:
-                                    num=self.genRV(["poisson", [p*math.log10(self.rdSegDis[(succ, node)]/200+1)]])
+                                    num=self.genRV(["poisson", [p*math.log10(2.4+self.rdSegDis[(succ, node)]/500),]])
                                 else:
-                                    num=self.genRV(["poisson", [((self.time-dist[1][i-1][0])/(t-dist[1][i-1][0])*(p-dist[1][i-1][1])+dist[1][i-1][1])\
-                                                             *math.log10(self.rdSegDis[(succ, node)]/200+1)]])
+                                    num=self.genRV(["poisson", [((self.time-dist[1][i-1][0])/(t-dist[1][i-1][0])*(p-dist[1][i-1][1])+dist[1][i-1][1])*math.log10(2.4+self.rdSegDis[(succ, node)]/500),]])
                                 break
                             
                     else:
-                        num = int(self.genRV((self.distNumOfCarAdd[0], (self.distNumOfCarAdd[1][0]*math.log10(self.rdSegDis[(succ, node)]/200+1),))))
+                        num = int(self.genRV((self.distNumOfCarAdd[0], (self.distNumOfCarAdd[1][0]*math.log10(2.4+self.rdSegDis[(succ, node)]/500),))))
                 else:
                     num = self.genRV(self.distNumOfCarAdd)
                 self.totalCar+=num
@@ -336,7 +335,7 @@ class Simulation():
             for succ in successors:
                 hot = self.nodes[node]["Records"][(succ,node)][0]
                 draw[(succ,node)] = self.trafficLevel(hot)
-        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.wtt, nca=self.numNewCar, withName=True)
+        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.wtt, nca=self.numNewCar, withName=False)
         # plt.show()
     
     def updatePolicy(self, alpha=2):
@@ -419,9 +418,9 @@ if __name__ == '__main__':
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*5
+    totalTime = 2
     # the total time of our simulation system
-    trafficLevels = [40,60,80,100,120]
+    trafficLevels = [30,50,70,90,120]
     # trafficLevels = [2,4,8,16,32]
     # trafficLevels = [t1,t2,t3,t4,t5]: the average waiting time in (0, t1] is viewed as low,
     # in [t1, t2] is viewed as light, in [t2, t3] is viewed as moderate
