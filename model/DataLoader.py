@@ -113,19 +113,19 @@ class RoadMap():
             if line[0:3]=="***":
                 continue
             data = line.strip().split(",")
-            try:
-                if data[2]=="a":
-                    self.addRoadbyCNN(data[0], data[1])
-                elif data[2]=="d":
-                    self.deleteRoadbyCNN(data[0], data[1])
-                else:
-                    print("WARNING: Modifying road map exit with excetions:",\
-                          data[0],"and", data[1], "are not valid CNN.")
-                    break
-            except:
-                print("WARNING: Modifying road map exit with exceptions:",\
-                      data[0],"and", data[1], "are not valid CNN that connect a road.")
+            # try:
+            if data[2]=="a":
+                self.addRoadbyCNN(data[0], data[1])
+            elif data[2]=="d":
+                self.deleteRoadbyCNN(data[0], data[1])
+            else:
+                print("WARNING: Modifying road map exit with excetions:",\
+                        data[0],"and", data[1], "are not valid CNN.")
                 break
+            # except:
+            #     print("WARNING: Modifying road map exit with exceptions:",\
+            #           data[0],"and", data[1], "are not valid CNN that connect a road.")
+            #     break
 
     def drawLights(self, highlight=None):
         plt.scatter(self.df["dtx"], self.df["dty"], s=5)
@@ -138,12 +138,12 @@ class RoadMap():
             plt.scatter(x,y,s=5,color='red')
         plt.show()
 
-    def findNode(self, cnn):
+    def findNode(self, cnn:str):
         """
         Search and return the specific node by CNN number
         """
         for i in self.nodes:
-            if i.cnn==cnn: return i
+            if i.cnn==int(cnn): return i
 
     def _reconstructNodes(self):
         """
@@ -249,6 +249,9 @@ class RoadMap():
 
     def getSuccessors(self, node):
         return node.successors
+    
+    def raiseNotExist(self, cnnw, cnn):
+        print("Runtime Error: CNN not defined: {0} is not a valid cnn; check the segment ({0}, {1}) for more detail".format(cnnw, cnn))
 
     def drawRoads(self, highlight=None, withName=False):
         if withName:
@@ -256,7 +259,6 @@ class RoadMap():
                 x=node.longitude
                 y=node.latitude
                 plt.text(x,y,str(node.cnn))
-        plt.show()
         if highlight!=None:
             for nodes, road in self.rdSegment.items():
                 if road==highlight:
@@ -265,7 +267,10 @@ class RoadMap():
                     plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=(110/256,130/256,230/256))
             return
         for nodes, rd in self.rdSegment.items():
+            if rd==None:
+                continue
             plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=(110/256,130/256,230/256))
+        plt.show()
 
     def drawRoadsWithStress(self, stress=util.Counter(), wrtT=False, nca=None, withName=False):
         if withName:
@@ -277,6 +282,8 @@ class RoadMap():
                        (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256),\
                         (0,0,0)]
         for nodes, rd in self.rdSegment.items():
+            if rd==None:
+                continue
             n1, n2 = nodes
             l1, l2 = (n1.longitude, n1.latitude), (n2.longitude, n2.latitude)
             if l1==l2:
@@ -322,11 +329,22 @@ class RoadMap():
         """
         self.rdSegment[(node1, node2)]=None
         self.rdSegment[(node2, node1)]=None
-        del(node1.successors, node2)    # need to verify the usage
-        del(node2.successors, node1)
+        print(len(node1.successors),len(node2.successors))
+        print(node2,node1.successors)
+        node1.successors.remove(node2)    # need to verify the usage
+        node2.successors.remove(node1) 
+        print(len(node1.successors),len(node2.successors))
 
     def deleteRoadbyCNN(self, cnn1, cnn2):
-        self.deleteRoadbyNode(self.findNode(cnn1), self.findNode(cnn2))
+        n1=self.findNode(cnn1)
+        n2=self.findNode(cnn2)
+        # if n1==None:
+        #     self.raiseNotExist(cnn1, cnn2)
+        #     return
+        # elif n2==None:
+        #     self.raiseNotExist(cnn2,cnn1)
+        #     return
+        self.deleteRoadbyNode(n1, n2)
 
     def addRoadbyNode(self, node1:lightNode, node2:lightNode, roadName:str):
         self.rdSegment[(node1, node2)]=roadName
@@ -335,7 +353,15 @@ class RoadMap():
         node2.successors.add(node1)
 
     def addRoadbyCNN(self, cnn1, cnn2, roadName:str):
-        self.addRoadbyNode(self.findNode(cnn1), self.findNode(cnn2), roadName)
+        n1=self.findNode(cnn1)
+        n2=self.findNode(cnn2)
+        # if n1==None:
+        #     self.raiseNotExist(cnn1, cnn2)
+        #     return
+        # elif n2==None:
+        #     self.raiseNotExist(cnn2,cnn1)
+        #     return
+        self.addRoadbyNode(n1, n2)
 
 
 if __name__ == '__main__':
