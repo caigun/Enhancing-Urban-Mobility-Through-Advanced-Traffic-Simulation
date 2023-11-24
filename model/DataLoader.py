@@ -267,7 +267,12 @@ class RoadMap():
         for nodes, rd in self.rdSegment.items():
             plt.plot([i.longitude for i in nodes],[i.latitude for i in nodes], color=(110/256,130/256,230/256))
 
-    def drawRoadsWithStress(self, stress=util.Counter(), wrtT=False, nca=None):
+    def drawRoadsWithStress(self, stress=util.Counter(), wrtT=False, nca=None, withName=False):
+        if withName:
+            for node in self.nodes:
+                x=node.longitude
+                y=node.latitude
+                plt.text(x,y,str(node.cnn))
         colorGradient=[(51/256,255/256,51/256), (153/256,255/256,51/256), (255/256,255/256,51/256),\
                        (255/256,153/256,51/256), (51/256,255/256,51/256), (255/256,51/256,51/256),\
                         (0,0,0)]
