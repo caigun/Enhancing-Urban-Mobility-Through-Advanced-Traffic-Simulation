@@ -253,7 +253,7 @@ class Simulation():
             for car in carPass:
                 if car > time:
                     break
-                if random.random()<0.1:
+                if random.random()<0.15:
                     self.totalCar-=1
                     continue
                 record = self.nodes[node]["Records"][(succ,node)]
@@ -307,11 +307,10 @@ class Simulation():
         print("=================================")
         print("Simulation Completed!")
         print("Time: {:.1f} sec".format(time.time()-self.systemTime))
-        print("Time: {:.2f}".format(time.time()-self.systemTime))
         print("Iteration:", self.time, "/", self.totalTime)
         print("=================================")
         if animation:
-            # gui.run(self, False)
+            gui.run(self, False)
             pass
 
     def loadStressData(self):
@@ -337,7 +336,7 @@ class Simulation():
             for succ in successors:
                 hot = self.nodes[node]["Records"][(succ,node)][0]
                 draw[(succ,node)] = self.trafficLevel(hot)
-        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.wtt, nca=self.numNewCar)
+        self.roads.drawRoadsWithStress(stress=draw, wrtT=self.wtt, nca=self.numNewCar, withName=True)
         # plt.show()
     
     def updatePolicy(self, alpha=2):
@@ -384,7 +383,8 @@ if __name__ == '__main__':
     # whether the addings of cars based on the length of a road segment
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
-    distNumOfCarAdd = ("time-varying-rate-linear", [(0,1),(3000,1.5),(4000,1.5), (7000, 1),(float('inf'),1.5)])
+    # distNumOfCarAdd = ("time-varying-rate-linear", [(0,1),(3000,1.3),(4000,1.3), (7000, 1),(float('inf'),1.5)])
+    distNumOfCarAdd = ("time-varying-rate-linear", [(0,1), (float('inf'), 1)])
     # the distribution of number of cars to add each time on each road segment
     """
     pattern that you can choose from: time-varying-rate
@@ -405,13 +405,12 @@ if __name__ == '__main__':
     """
     carAddPosRandom = True
     # whether the added car is randomly distributed on the road or just simply at the intersection
-    timeIntervalOfDeleteCar = 1
-    # Delete cars every {timeIntervalOfDeleteCar} seconds
 
-    
     # ========== THIS PARAMETER IS NO LONGER IN USE ==========
     distNumOfCarDelete = ("poisson", (6,))
     # the distribution of number of cars to delete each time on each road segment
+    timeIntervalOfDeleteCar = 1
+    # Delete cars every {timeIntervalOfDeleteCar} seconds
     # ========================================================
 
     distCarSpeed = ("normal", (6,1))
@@ -420,7 +419,7 @@ if __name__ == '__main__':
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*6
+    totalTime = 60*60*5
     # the total time of our simulation system
     trafficLevels = [40,60,80,100,120]
     # trafficLevels = [2,4,8,16,32]
@@ -444,7 +443,7 @@ if __name__ == '__main__':
 
     simulation.simulation()
     simulation.drawTraffic()
-    plt.savefig(folder_name + "//Figure1.png")
+    # plt.savefig(folder_name + "//Figure1.png")
 
     """If you want to try policy modification, use codes below"""
     # for i in range(10):
