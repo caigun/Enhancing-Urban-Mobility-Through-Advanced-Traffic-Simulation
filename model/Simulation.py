@@ -379,7 +379,7 @@ if __name__ == '__main__':
     roads = RoadMap(df, 0.03)
     trafficLightPolicy = [20,]*8
     # traffic light green time for every adjacent road segment
-    carAddBaseOn_rdSegDis = True
+    carAddBaseOn_rdSegDis = False
     # whether the addings of cars based on the length of a road segment
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
