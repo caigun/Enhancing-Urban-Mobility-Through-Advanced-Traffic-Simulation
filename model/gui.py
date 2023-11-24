@@ -20,7 +20,7 @@ def drawRoadsWithStress(screen, model:Simulation.Simulation, stress_data, width=
         if l1==l2:
             continue
         direction=[i*model.roads.scale for i in DataLoader.rightShift(l1,l2)]
-        color=colorGradient[stress]
+        color=colorGradient[int(stress)]
         x1=int((nodes[0].longitude+direction[0]-xs)/xd*pixelx)
         y1=pixely-int((nodes[0].latitude+direction[1]-ys)/yd*pixely)
         x2=int((nodes[1].longitude+direction[0]-xs)/xd*pixelx)
@@ -53,7 +53,7 @@ def run(model, save=True):
         drawRoadsWithStress(screen, model, stress_data[i])
         stress.append(sum(stress_data[i].values())/len(stress_data[i].values()))
         i+=1
-        textImage=myfont.render("Time: "+str(i*model.updateTime), True, black)
+        textImage=myfont.render("Time: "+str(int(i*model.updateTime/60)), True, black)
         screen.blit(textImage,(10,10))
         pygame.display.flip()
         if save:
