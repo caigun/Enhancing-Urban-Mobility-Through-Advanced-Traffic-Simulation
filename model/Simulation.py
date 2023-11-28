@@ -250,20 +250,26 @@ class Simulation():
             numCarPass = self.genRV(self.distNumCarPass)
             carPass = self.nodes[node]["Queues"][(succ,node)][:numCarPass]
             self.nodes[node]["Queues"][(succ,node)] = self.nodes[node]["Queues"][(succ,node)][numCarPass:]
+            allTime=0
+            count=0
             for car in carPass:
                 if car > time:
                     break
                 if random.random()<0.15:
                     self.totalCar-=1
                     continue
-                record = self.nodes[node]["Records"][(succ,node)]
-                self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
+                # record = self.nodes[node]["Records"][(succ,node)]
+                # self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
+                allTime+=time-car
+                count+=1
                 u = np.random.uniform()
                 index0 = int(u*len(successors))
                 success = list(successors)[index0]
                 speed = self.genRV(self.distCarSpeed)
                 self.nodes[success]["Queues"][(node,success)].append(time+self.updateTime+self.rdSegDis[(node, success)]/speed)
                 self.nodes[success]["Queues"][(node,success)].sort()
+            record=self.nodes[node]["Records"][(succ, node)]
+            self.nodes[node]["Records"][(succ, node)] = ((record[0]*record[1]+allTime)/(record[1]+count+1), record[1]+count)
 
     def simu(self, time):
         self.addCars(time)
