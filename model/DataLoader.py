@@ -329,11 +329,11 @@ class RoadMap():
         """
         self.rdSegment[(node1, node2)]=None
         self.rdSegment[(node2, node1)]=None
-        print(len(node1.successors),len(node2.successors))
-        print(node2,node1.successors)
+        # print(len(node1.successors),len(node2.successors))
+        # print(node2,node1.successors)
         node1.successors.remove(node2)    # need to verify the usage
         node2.successors.remove(node1) 
-        print(len(node1.successors),len(node2.successors))
+        # print(len(node1.successors),len(node2.successors))
 
     def deleteRoadbyCNN(self, cnn1, cnn2):
         n1=self.findNode(cnn1)

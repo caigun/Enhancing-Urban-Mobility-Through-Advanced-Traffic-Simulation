@@ -106,7 +106,7 @@ class Simulation():
         if dist[0] == "exponential":
             return np.random.exponential(scale=dist[1][0])
         if dist[0] == "normal":
-            return max(np.random.normal(loc=dist[1][0], scale=dist[1][1]), 0)
+            return max(np.random.normal(loc=dist[1][0], scale=dist[1][1]), 1)
         if dist[0] == "poisson":
             return np.random.poisson(lam=dist[1][0])
         if dist[0] == "time-varying-rate":
@@ -226,6 +226,7 @@ class Simulation():
             successors = self.roads.getSuccessors(node)
             for succ in successors:
                 num = self.genRV(self.distNumOfCarAdd)
+                self.totalCar-=num
                 for _ in range(num):
                     length = len(self.nodes[node]["Queues"][(succ,node)])
                     if length == 0:
@@ -267,7 +268,7 @@ class Simulation():
     def simu(self, time):
         self.addCars(time)
         self.updateQueues(time)
-        # self.deleteCar(time)
+        self.deleteCar(time)
 
     def simulation(self):
         self.initialization()
@@ -383,7 +384,7 @@ if __name__ == '__main__':
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
     # distNumOfCarAdd = ("time-varying-rate-linear", [(0,1),(3000,1.3),(4000,1.3), (7000, 1),(float('inf'),1.5)])
-    distNumOfCarAdd = ("time-varying-rate-linear", [(0,1), (float('inf'), 1)])
+    distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5), (3000, 0.5), (6000,1), (9000, 1), (12000, 0), (1000000, 0.5)])
     # the distribution of number of cars to add each time on each road segment
     """
     pattern that you can choose from: time-varying-rate
@@ -406,19 +407,19 @@ if __name__ == '__main__':
     # whether the added car is randomly distributed on the road or just simply at the intersection
 
     # ========== THIS PARAMETER IS NO LONGER IN USE ==========
-    distNumOfCarDelete = ("poisson", (6,))
+    distNumOfCarDelete = ("poisson", (2,))
     # the distribution of number of cars to delete each time on each road segment
-    timeIntervalOfDeleteCar = 1
+    timeIntervalOfDeleteCar = 2
     # Delete cars every {timeIntervalOfDeleteCar} seconds
     # ========================================================
 
-    distCarSpeed = ("normal", (6,1))
+    distCarSpeed = ("normal", (15,5))
     # the distribution of the speed for cars
     distNumCarPass = ("poisson", (1/2,))
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 2
+    totalTime = 60*60*5
     # the total time of our simulation system
     trafficLevels = [30,50,70,90,120]
     # trafficLevels = [2,4,8,16,32]
