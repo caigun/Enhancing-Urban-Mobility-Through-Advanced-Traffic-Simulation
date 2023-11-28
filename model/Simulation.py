@@ -87,7 +87,7 @@ class Simulation():
             self.nodes[node]["Records"] = dict()
             successors = self.roads.getSuccessors(node)
             for succ in successors:
-                self.nodes[node]["Records"][(succ,node)] = (0,0)
+                self.nodes[node]["Records"][(succ,node)] = [0, []]
     
     def initialization(self):
         self.initialCars()
@@ -256,8 +256,15 @@ class Simulation():
                 if random.random()<0.15:
                     self.totalCar-=1
                     continue
-                record = self.nodes[node]["Records"][(succ,node)]
-                self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
+                # record = self.nodes[node]["Records"][(succ,node)]
+                # self.nodes[node]["Records"][(succ,node)] = ((record[0]*record[1]+(time-car))/(record[1]+1), record[1]+1)
+                self.nodes[node]["Records"][(succ,node)][1].append((time+self.updateTime, time-car))
+                self.nodes[node]["Records"][(succ,node)][1] = [i for i in self.nodes[node]["Records"][(succ,node)][1] if time-i[0] <= 60*5]
+                if len(self.nodes[node]["Records"][(succ,node)][1]) == 0:
+                    self.nodes[node]["Records"][(succ,node)][0] = 0
+                else:
+                    X = [i[1] for i in self.nodes[node]["Records"][(succ,node)][1]]
+                    self.nodes[node]["Records"][(succ,node)][0] = sum(X)/len(X)
                 u = np.random.uniform()
                 index0 = int(u*len(successors))
                 success = list(successors)[index0]
@@ -385,6 +392,7 @@ if __name__ == '__main__':
     # Add cars every {timeIntervalOfAddCar} seconds
     # distNumOfCarAdd = ("time-varying-rate-linear", [(0,1),(3000,1.3),(4000,1.3), (7000, 1),(float('inf'),1.5)])
     distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5), (3000, 0.5), (6000,1), (9000, 1), (12000, 0), (1000000, 0.5)])
+    # distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5), (3000, 0.5), (6000,1), (9000, 1), (12000, 0), (1000000, 0.5)])
     # the distribution of number of cars to add each time on each road segment
     """
     pattern that you can choose from: time-varying-rate
