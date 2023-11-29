@@ -376,7 +376,7 @@ if __name__ == '__main__':
     f = plt.figure()
     f.set_figwidth(10)
     f.set_figheight(6)
-    roads.drawRoads(withName=True)
+    roads.drawRoads(withName=False)
     # roads.drawRoadsWithStress()
     # roads.drawLights("VALENCIA")
     # roads.drawRoads()
