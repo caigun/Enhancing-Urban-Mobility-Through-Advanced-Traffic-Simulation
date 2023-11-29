@@ -427,7 +427,7 @@ if __name__ == '__main__':
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*6
+    totalTime = 60*60*4
     # the total time of our simulation system
     trafficLevels = [30,50,70,90,120]
     # trafficLevels = [2,4,8,16,32]
