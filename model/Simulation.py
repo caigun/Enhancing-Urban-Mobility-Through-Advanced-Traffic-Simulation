@@ -249,7 +249,7 @@ class Simulation():
                     succ = list(successors)[i]
                     break
             numCarPass = self.genRV(self.distNumCarPass)
-            length = self.nodes[node]["Queues"][(succ,node)]
+            length = len(self.nodes[node]["Queues"][(succ,node)])
             carPass = [heapq.heappop(self.nodes[node]["Queues"][(succ,node)]) for _ in range(min(numCarPass, length))]
             for car in carPass:
                 if car > time:
