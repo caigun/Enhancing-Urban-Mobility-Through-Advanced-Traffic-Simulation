@@ -8,6 +8,7 @@ import gui
 import random
 import math
 import time
+import heapq
 
 class Simulation():
     def __init__(self, roads, trafficLightPolicy, timeIntervalOfAddCar, carAddBaseOn_rdSegDis, distNumOfCarAdd, 
@@ -210,8 +211,7 @@ class Simulation():
                     else:
                         position = 0
                     speed = max(self.genRV(self.distCarSpeed), 1)
-                    self.nodes[node]["Queues"][(succ,node)].append(time + position/speed)
-                self.nodes[node]["Queues"][(succ,node)].sort()
+                    heapq.heappush(self.nodes[node]["Queues"][(succ,node)], time + position/speed)
                 # self.totalCar += len(self.nodes[node]["Queues"][(succ,node)])
         self.numNewCar.append(self.totalCar-prev)
         # self.distNumOfCarDelete
@@ -233,6 +233,7 @@ class Simulation():
                         break
                     deleteindex = random.randint(0, length-1)
                     del self.nodes[node]["Queues"][(succ,node)][deleteindex]
+                    heapq.heapify(self.nodes[node]["Queues"][(succ,node)])
     
     def updateQueues(self, time):
         """
@@ -248,8 +249,8 @@ class Simulation():
                     succ = list(successors)[i]
                     break
             numCarPass = self.genRV(self.distNumCarPass)
-            carPass = self.nodes[node]["Queues"][(succ,node)][:numCarPass]
-            self.nodes[node]["Queues"][(succ,node)] = self.nodes[node]["Queues"][(succ,node)][numCarPass:]
+            length = self.nodes[node]["Queues"][(succ,node)]
+            carPass = [heapq.heappop(self.nodes[node]["Queues"][(succ,node)]) for _ in range(min(numCarPass, length))]
             for car in carPass:
                 if car > time:
                     break
@@ -269,8 +270,7 @@ class Simulation():
                 index0 = int(u*len(successors))
                 success = list(successors)[index0]
                 speed = self.genRV(self.distCarSpeed)
-                self.nodes[success]["Queues"][(node,success)].append(time+self.updateTime+self.rdSegDis[(node, success)]/speed)
-                self.nodes[success]["Queues"][(node,success)].sort()
+                heapq.heappush(self.nodes[success]["Queues"][(node,success)], time+self.updateTime+self.rdSegDis[(node, success)]/speed)
 
     def simu(self, time):
         self.addCars(time)
