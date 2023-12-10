@@ -469,5 +469,6 @@ if __name__ == '__main__':
         print(i+1)
         plt.figure()
         simulation.drawTraffic()
-        plt.show()
         plt.savefig(folder_name + "//Figure{}.png".format(i+1))
+        plt.show()
+        
