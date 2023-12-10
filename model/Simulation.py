@@ -32,6 +32,7 @@ class Simulation():
         self.patchTime = patchTime
         self.totalCar = 0
         self.numNewCar = []
+        self.recordsForPolicyIter = None
         self._rdSegmentDis()
 
     def _rdSegmentDis(self):
@@ -289,6 +290,8 @@ class Simulation():
         while self.time<self.totalTime:
             # print(self.totalCar)
             self.simu(self.time+self.updateTime)
+            if self.time == 3600*3:
+                self.recordsForPolicyIter = self.nodes
             if animation:
                 draw = util.Counter()
                 waitingTime = util.Counter()
@@ -307,7 +310,8 @@ class Simulation():
                 print("Time: {:.1f} sec".format(time.time()-self.systemTime))
                 print("Progress: {:.2f}%".format(self.time/self.totalTime*100))
                 print("Iteration:", self.time, "/", self.totalTime)
-                print("Avg waiting time: {:.2f}".format(sum(waitingTime.values())/len((waitingTime).values()),"(second)"))
+                if animation:
+                    print("Avg waiting time: {:.2f}".format(sum(waitingTime.values())/len((waitingTime).values()),"(second)"))
                 print("=================================")
         # print(self.totalCar)
         os.system('clear')
@@ -360,24 +364,28 @@ class Simulation():
             max, min = 0, 1000000
             successors = list(successors)
             for i in range(len(successors)):
-                if self.nodes[node]["Records"][(successors[i],node)][0] >= max:
-                    max = self.nodes[node]["Records"][(successors[i],node)][0]
+                if self.recordsForPolicyIter[node]["Records"][(successors[i],node)][0] >= max:
+                    max = self.recordsForPolicyIter[node]["Records"][(successors[i],node)][0]
                     maxSucc = i
-                if self.nodes[node]["Records"][(successors[i],node)][0] <= min:
-                    min = self.nodes[node]["Records"][(successors[i],node)][0]
+                if self.recordsForPolicyIter[node]["Records"][(successors[i],node)][0] <= min:
+                    min = self.recordsForPolicyIter[node]["Records"][(successors[i],node)][0]
                     minSucc = i
-            if self.nodes[node]["Policy"]["timeIntervals"][maxSucc] > 480:
+            if max > 120:
                 self.nodes[node]["Policy"]["timeIntervals"][maxSucc] = self.nodes[node]["Policy"]["timeIntervals"][maxSucc] + alpha*2
                 self.nodes[node]["Policy"]["timeForOneIteration"] += alpha*2
-            elif self.nodes[node]["Policy"]["timeIntervals"][maxSucc] > 240:
+            elif max > 90:
                 self.nodes[node]["Policy"]["timeIntervals"][maxSucc] = self.nodes[node]["Policy"]["timeIntervals"][maxSucc] + alpha
                 self.nodes[node]["Policy"]["timeForOneIteration"] += alpha
-            if self.nodes[node]["Policy"]["timeIntervals"][minSucc] < 60:
+            else:
+                pass
+            if min < 30:
                 self.nodes[node]["Policy"]["timeIntervals"][minSucc] = self.nodes[node]["Policy"]["timeIntervals"][minSucc] - alpha*2
                 self.nodes[node]["Policy"]["timeForOneIteration"] -= alpha*2
-            elif self.nodes[node]["Policy"]["timeIntervals"][minSucc] < 120:
+            elif min < 50:
                 self.nodes[node]["Policy"]["timeIntervals"][minSucc] = self.nodes[node]["Policy"]["timeIntervals"][minSucc] - alpha
                 self.nodes[node]["Policy"]["timeForOneIteration"] -= alpha
+            else:
+                pass
 
 
 if __name__ == '__main__':
@@ -437,7 +445,7 @@ if __name__ == '__main__':
     # in [t3, t4] is viewed as heavy, in [t4, t5] is viewed as extra heavy
     # in [t5, +oo) is  :( 
 
-    animation = True
+    animation = False
     # whether use the animation for step by step update
     patchTime=60
     # the time for each gui update
@@ -450,16 +458,16 @@ if __name__ == '__main__':
     if not os.path.exists('./'+folder_name):
         os.mkdir(('./'+folder_name))
 
-    simulation.simulation()
-    simulation.drawTraffic()
+    # simulation.simulation()
+    # simulation.drawTraffic()
     # plt.savefig(folder_name + "//Figure1.png")
 
     """If you want to try policy modification, use codes below"""
-    # for i in range(10):
-    #     simulation.simulation()
-    #     simulation.updatePolicy()
-    #     print(i+1)
-    #     plt.figure()
-    #     simulation.drawTraffic()
-    #     plt.show()
-    #     plt.savefig(folder_name + "//Figure{}.png".format(i+1))
+    for i in range(10):
+        simulation.simulation()
+        simulation.updatePolicy()
+        print(i+1)
+        plt.figure()
+        simulation.drawTraffic()
+        plt.show()
+        plt.savefig(folder_name + "//Figure{}.png".format(i+1))
