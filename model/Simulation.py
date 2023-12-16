@@ -227,7 +227,7 @@ class Simulation():
         for node in self.roads.nodes:
             successors = self.roads.getSuccessors(node)
             for succ in successors:
-                num = self.genRV(self.distNumOfCarAdd)
+                num = self.genRV(self.distNumOfCarDelete)
                 self.totalCar-=num
                 for _ in range(num):
                     length = len(self.nodes[node]["Queues"][(succ,node)])
@@ -277,7 +277,7 @@ class Simulation():
     def simu(self, time):
         self.addCars(time)
         self.updateQueues(time)
-        self.deleteCar(time)
+        # self.deleteCar(time)
 
     def simulation(self):
         self.initialization()
@@ -412,7 +412,7 @@ if __name__ == '__main__':
     # distNumOfCarAdd = ("time-varying-rate-linear", [(0,1),(3000,1.3),(4000,1.3), (7000, 1),(float('inf'),1.5)])
     # distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5), (3600, 0.5), (5000,0.9), (10000, 0.9), (3*3600, 0.5),\
     #                                                 (3600*5, 0.8),(3600*5.5, 0.8), (3600*6, 0.5), (1000000, 0.5)])
-    distNumOfCarAdd = ("poisson", [2,])
+    distNumOfCarAdd = ("poisson", [0.5,])
     # the distribution of number of cars to add each time on each road segment
     """
     pattern that you can choose from: time-varying-rate
