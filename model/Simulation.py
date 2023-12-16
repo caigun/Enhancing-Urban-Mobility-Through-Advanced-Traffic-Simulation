@@ -248,6 +248,7 @@ class Simulation():
             iterTime = time%self.nodes[node]["Policy"]["timeForOneIteration"]
             for i in range(len(successors)):
                 if iterTime < sum(self.nodes[node]["Policy"]["timeIntervals"][:i+1]):
+                    print(self.nodes[node]["Policy"]["timeIntervals"][:i+1])
                     succ = list(successors)[i]
                     break
             numCarPass = self.genRV(self.distNumCarPass)
@@ -278,8 +279,6 @@ class Simulation():
         self.addCars(time)
         self.updateQueues(time)
         self.deleteCar(time)
-        if self.time//20==0:
-            self.updatePolicy()
 
     def simulation(self):
         self.initialization()
