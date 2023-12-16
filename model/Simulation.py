@@ -248,7 +248,6 @@ class Simulation():
             iterTime = time%self.nodes[node]["Policy"]["timeForOneIteration"]
             for i in range(len(successors)):
                 if iterTime < sum(self.nodes[node]["Policy"]["timeIntervals"][:i+1]):
-                    print(self.nodes[node]["Policy"]["timeIntervals"][:i+1])
                     succ = list(successors)[i]
                     break
             numCarPass = self.genRV(self.distNumCarPass)
@@ -411,9 +410,9 @@ if __name__ == '__main__':
     timeIntervalOfAddCar = 30
     # Add cars every {timeIntervalOfAddCar} seconds
     # distNumOfCarAdd = ("time-varying-rate-linear", [(0,1),(3000,1.3),(4000,1.3), (7000, 1),(float('inf'),1.5)])
-    distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5), (3600, 0.5), (5000,0.9), (10000, 0.9), (3*3600, 0.5),\
-                                                    (3600*5, 0.8),(3600*5.5, 0.8), (3600*6, 0.5), (1000000, 0.5)])
-    # distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5), (3000, 0.5), (6000,1), (9000, 1), (12000, 0), (1000000, 0.5)])
+    # distNumOfCarAdd = ("time-varying-rate-linear", [(0,0.5), (3600, 0.5), (5000,0.9), (10000, 0.9), (3*3600, 0.5),\
+    #                                                 (3600*5, 0.8),(3600*5.5, 0.8), (3600*6, 0.5), (1000000, 0.5)])
+    distNumOfCarAdd = ("poisson", [2,])
     # the distribution of number of cars to add each time on each road segment
     """
     pattern that you can choose from: time-varying-rate
@@ -448,7 +447,7 @@ if __name__ == '__main__':
     # the distribtion of the number of cars in every {updateTime} seconds
     updateTime = 2
     # uodate our system every {updateTime} seconds
-    totalTime = 60*60*8
+    totalTime = 60*60*1
     # the total time of our simulation system
     trafficLevels = [30,50,70,90,120]
     # trafficLevels = [2,4,8,16,32]
